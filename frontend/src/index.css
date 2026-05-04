@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-navy-900 text-white font-sans antialiased;
+  }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { @apply bg-navy-800; }
+  ::-webkit-scrollbar-thumb { @apply bg-accent rounded-full; }
+}
+
+@layer components {
+  .card {
+    @apply bg-navy-800 border border-white/10 rounded-2xl p-6;
+  }
+  .btn-primary {
+    @apply bg-accent hover:bg-accent-light text-white font-medium px-5 py-2.5 rounded-xl transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply bg-white/10 hover:bg-white/20 text-white font-medium px-5 py-2.5 rounded-xl transition-all duration-200;
+  }
+  .input {
+    @apply bg-navy-900 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-accent w-full;
+  }
+  .badge-green {
+    @apply bg-success/20 text-success text-xs font-medium px-2.5 py-1 rounded-full;
+  }
+  .badge-red {
+    @apply bg-danger/20 text-danger text-xs font-medium px-2.5 py-1 rounded-full;
+  }
+  .badge-yellow {
+    @apply bg-warn/20 text-warn text-xs font-medium px-2.5 py-1 rounded-full;
+  }
+  .badge-gray {
+    @apply bg-white/10 text-white/60 text-xs font-medium px-2.5 py-1 rounded-full;
+  }
+}

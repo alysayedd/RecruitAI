@@ -1,0 +1,31 @@
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+backend/venv/
+.venv/
+venv/
+
+# Local data
+backend/uploads/
+backend/recruitment_ai.db
+*.sqlite
+*.db
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Env files
+.env
+.env.*
