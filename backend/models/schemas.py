@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Integer, Float, Boolean, Text, DateTime, ForeignKey, JSON
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import BaseModel
 from typing import Optional, List, Any
 from models.database import Base
@@ -11,11 +11,12 @@ from models.database import Base
 class JobPosting(Base):
     __tablename__ = "job_postings"
     id = Column(String, primary_key=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
     title = Column(String, nullable=False)
     raw_jd_text = Column(Text, nullable=False)
     parsed_jd = Column(JSON, nullable=True)
     status = Column(String, default="pending")
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     candidates = relationship("Candidate", back_populates="job")
     bias_reports = relationship("BiasReport", back_populates="job")
     rankings = relationship("Ranking", back_populates="job")
@@ -28,7 +29,7 @@ class Candidate(Base):
     filename = Column(String, nullable=False)
     raw_cv_text = Column(Text, nullable=True)
     name = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     job = relationship("JobPosting", back_populates="candidates")
     screening_result = relationship("ScreeningResult", back_populates="candidate", uselist=False)
     ranking = relationship("Ranking", back_populates="candidate", uselist=False)
@@ -43,7 +44,7 @@ class ScreeningResult(Base):
     score_breakdown = Column(JSON, nullable=True)
     reasoning = Column(Text, nullable=True)
     explanation = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     candidate = relationship("Candidate", back_populates="screening_result")
 
 
@@ -53,7 +54,7 @@ class BiasReport(Base):
     job_id = Column(String, ForeignKey("job_postings.id"), nullable=False)
     report_data = Column(JSON, nullable=True)
     overall_bias_score = Column(Float, default=0)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     job = relationship("JobPosting", back_populates="bias_reports")
 
 
@@ -84,6 +85,9 @@ class JobResponse(BaseModel):
     created_at: datetime
     class Config:
         from_attributes = True
+
+class UserJobCreate(BaseModel):
+    jd_text: str
 
 class CandidateResponse(BaseModel):
     id: str

@@ -7,15 +7,19 @@ async def run_ranker(candidates_data: list, bias_report: dict) -> list:
     Returns sorted ranking list.
     """
     flagged_ids = set(bias_report.get("flagged_candidates", []))
-    bonus = settings.BIAS_CORRECTION_BONUS
+    candidate_adjustments = bias_report.get("candidate_adjustments", {}) or {}
+    fallback_bonus = settings.BIAS_CORRECTION_BONUS
     threshold = settings.SHORTLIST_THRESHOLD
 
     ranked = []
     for c in candidates_data:
         cid = c["candidate_id"]
         raw_score = float(c.get("total_score", 0))
-        bias_corrected = cid in flagged_ids
-        adjusted_score = min(raw_score + (bonus if bias_corrected else 0), 100)
+        fairness_adjustment = float(candidate_adjustments.get(cid, 0))
+        if fairness_adjustment <= 0 and cid in flagged_ids:
+            fairness_adjustment = fallback_bonus
+        bias_corrected = fairness_adjustment > 0
+        adjusted_score = min(raw_score + fairness_adjustment, 100)
 
         ranked.append({
             "candidate_id": cid,
@@ -24,6 +28,7 @@ async def run_ranker(candidates_data: list, bias_report: dict) -> list:
             "raw_score": round(raw_score, 2),
             "adjusted_score": round(adjusted_score, 2),
             "bias_corrected": bias_corrected,
+            "fairness_adjustment": round(fairness_adjustment, 2),
             "score_breakdown": c.get("score_breakdown", {}),
         })
 

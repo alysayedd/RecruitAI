@@ -4,36 +4,82 @@
 
 @layer base {
   body {
-    @apply bg-navy-900 text-white font-sans antialiased;
+    background-color: #101014;
+    color: white;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
+  ::selection { background: rgba(99, 102, 241, 0.4); }
   ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { @apply bg-navy-800; }
-  ::-webkit-scrollbar-thumb { @apply bg-accent rounded-full; }
+  ::-webkit-scrollbar-track { background: #101014; }
+  ::-webkit-scrollbar-thumb { background: #3f414d; border-radius: 9999px; }
 }
 
 @layer components {
   .card {
-    @apply bg-navy-800 border border-white/10 rounded-2xl p-6;
+    background: linear-gradient(135deg, rgba(31, 33, 42, 0.84), rgba(20, 21, 28, 0.72));
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 8px;
+    padding: 1.5rem;
+    backdrop-filter: blur(12px);
+  }
+  .card-glow {
+    background: linear-gradient(135deg, rgba(31, 33, 42, 0.84), rgba(20, 21, 28, 0.72));
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.08);
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 font-semibold text-sm px-5 py-2.5 rounded-lg transition-all duration-200 disabled:opacity-30 disabled:pointer-events-none;
   }
   .btn-primary {
-    @apply bg-accent hover:bg-accent-light text-white font-medium px-5 py-2.5 rounded-xl transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed;
+    @apply btn text-white;
+    background: linear-gradient(135deg, #6366f1, #818cf8);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
   }
-  .btn-secondary {
-    @apply bg-white/10 hover:bg-white/20 text-white font-medium px-5 py-2.5 rounded-xl transition-all duration-200;
+  .btn-primary:hover {
+    box-shadow: 0 6px 25px rgba(99, 102, 241, 0.5);
+    transform: translateY(-1px);
   }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-ghost {
+    @apply btn text-white/70 hover:text-white;
+    background: rgba(255,255,255,0.06);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.1); }
   .input {
-    @apply bg-navy-900 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-accent w-full;
+    @apply w-full text-sm text-white focus:outline-none transition-all duration-200;
+    background: rgba(17, 18, 24, 0.86);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
   }
-  .badge-green {
-    @apply bg-success/20 text-success text-xs font-medium px-2.5 py-1 rounded-full;
+  .input::placeholder { color: rgba(255,255,255,0.25); }
+  .input:focus {
+    border-color: rgba(99, 102, 241, 0.5);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
   }
-  .badge-red {
-    @apply bg-danger/20 text-danger text-xs font-medium px-2.5 py-1 rounded-full;
+  .label {
+    @apply text-xs font-semibold uppercase tracking-wider;
+    color: rgba(255,255,255,0.4);
   }
-  .badge-yellow {
-    @apply bg-warn/20 text-warn text-xs font-medium px-2.5 py-1 rounded-full;
+  .pill {
+    @apply inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full;
   }
-  .badge-gray {
-    @apply bg-white/10 text-white/60 text-xs font-medium px-2.5 py-1 rounded-full;
+  .pill-green { @apply pill text-emerald; background: rgba(52, 211, 153, 0.15); }
+  .pill-red { @apply pill text-rose; background: rgba(251, 113, 133, 0.15); }
+  .pill-yellow { @apply pill text-amber; background: rgba(251, 191, 36, 0.15); }
+  .pill-muted { @apply pill text-white/50; background: rgba(255,255,255,0.06); }
+  .pill-accent { @apply pill text-accent-light; background: rgba(99, 102, 241, 0.15); }
+  .pill-cyan { @apply pill text-cyan; background: rgba(34, 211, 238, 0.15); }
+  .stat-value {
+    @apply text-3xl font-bold tracking-tight;
+  }
+  .gradient-text {
+    background: linear-gradient(135deg, #818cf8, #22d3ee);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }

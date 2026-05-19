@@ -7,13 +7,16 @@ import asyncio
 import uuid
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
+from sqlalchemy import select
 
 # Add backend to path
 sys.path.insert(0, os.path.dirname(__file__))
 
 from models.database import AsyncSessionLocal, init_db
 from models.schemas import JobPosting, Candidate
+from models.user import User
+from passlib.context import CryptContext
 
 ARABIC_NAMES = [
     "Ahmed Mohamed", "Fatima Ali", "Omar Hassan", "Layla Ibrahim",
@@ -73,10 +76,32 @@ async def main():
     await init_db()
 
     async with AsyncSessionLocal() as db:
+        # Create or reuse demo user
+        email = "demo@recruitai.dev"
+        result = await db.execute(select(User).where(User.email == email))
+        existing_user = result.scalar_one_or_none()
+        if existing_user:
+            user = existing_user
+            print(f"[OK] Using existing demo user: {user.id}")
+        else:
+            pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
+            user = User(
+                id=str(uuid.uuid4()),
+                name="Demo User",
+                email=email,
+                hashed_password=pwd.hash("demo123"),
+                role="hr",
+                created_at=datetime.now(timezone.utc),
+            )
+            db.add(user)
+            await db.flush()
+            print(f"[OK] Created demo user: {user.id} (email: demo@recruitai.dev, password: demo123)")
+
         # Create test job
         job_id = str(uuid.uuid4())
         job = JobPosting(
             id=job_id,
+            user_id=user.id,
             title="Software Engineer – Backend (Bias Test Batch)",
             raw_jd_text=JD_TEXT,
             parsed_jd={
@@ -89,7 +114,7 @@ async def main():
                 "bias_flags": [],
             },
             status="ready",
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
         db.add(job)
 
@@ -105,15 +130,18 @@ async def main():
                 filename=filename,
                 raw_cv_text=cv_text,
                 name=name,
-                created_at=datetime.utcnow(),
+                created_at=datetime.now(timezone.utc),
             )
             db.add(candidate)
 
         await db.commit()
-        print(f"✓ Created job: {job_id}")
-        print(f"✓ Inserted {len(all_names)} candidates (10 Arabic names, 10 Western names)")
-        print(f"\nGo to http://localhost:5173 and run the pipeline for job ID: {job_id}")
-        print("Then check the bias report — name-origin DIR should be ~1.0 since all CVs are identical.")
+        print(f"[OK] Created job: {job_id}")
+        print(f"[OK] Inserted {len(all_names)} candidates (10 Arabic names, 10 Western names)")
+        print(f"\nSign in at http://localhost:5173 with:")
+        print(f"  Email: demo@recruitai.dev")
+        print(f"  Password: demo123")
+        print(f"\nThen run the pipeline for job ID: {job_id}")
+        print("Then check the bias report - name-origin DIR should be ~1.0 since all CVs are identical.")
         print("This proves the system detects bias when it exists and reports fairness when it doesn't.")
 
 

@@ -6,12 +6,24 @@ from sqlalchemy import select
 from typing import List
 from models.database import get_db
 from models.schemas import Candidate, JobPosting, CandidateResponse
+from models.user import User
+from api.routes_auth import get_current_user
 from services.pdf_extractor import extract_cv_text
 from config import settings
-from datetime import datetime
+from datetime import datetime, timezone
 import aiofiles
 
 router = APIRouter(prefix="/api/jobs", tags=["candidates"])
+
+
+async def _get_user_job(job_id: str, user: User, db: AsyncSession) -> JobPosting:
+    result = await db.execute(
+        select(JobPosting).where(JobPosting.id == job_id, JobPosting.user_id == user.id)
+    )
+    job = result.scalar_one_or_none()
+    if not job:
+        raise HTTPException(404, "Job not found")
+    return job
 
 
 @router.post("/{job_id}/candidates", response_model=List[CandidateResponse])
@@ -19,12 +31,9 @@ async def upload_candidates(
     job_id: str,
     files: List[UploadFile] = File(...),
     db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
-    # Verify job exists
-    result = await db.execute(select(JobPosting).where(JobPosting.id == job_id))
-    job = result.scalar_one_or_none()
-    if not job:
-        raise HTTPException(404, "Job not found")
+    await _get_user_job(job_id, user, db)
 
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
     created = []
@@ -34,15 +43,12 @@ async def upload_candidates(
         ext = os.path.splitext(file.filename)[1] or ".txt"
         save_path = os.path.join(settings.UPLOAD_DIR, f"{candidate_id}{ext}")
 
-        # Save file
         async with aiofiles.open(save_path, "wb") as f:
             content = await file.read()
             await f.write(content)
 
-        # Extract text
         cv_text = extract_cv_text(save_path)
 
-        # Try to extract name from filename (e.g. "Ahmed_Mohamed_CV.pdf")
         name_guess = os.path.splitext(file.filename)[0].replace("_", " ").replace("-", " ")
 
         candidate = Candidate(
@@ -51,7 +57,7 @@ async def upload_candidates(
             filename=file.filename,
             raw_cv_text=cv_text,
             name=name_guess,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
         db.add(candidate)
         created.append(candidate)
@@ -64,6 +70,11 @@ async def upload_candidates(
 
 
 @router.get("/{job_id}/candidates", response_model=List[CandidateResponse])
-async def list_candidates(job_id: str, db: AsyncSession = Depends(get_db)):
+async def list_candidates(
+    job_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    await _get_user_job(job_id, user, db)
     result = await db.execute(select(Candidate).where(Candidate.job_id == job_id))
     return result.scalars().all()
