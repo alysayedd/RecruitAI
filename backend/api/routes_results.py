@@ -9,19 +9,31 @@ from models.database import get_db, AsyncSessionLocal
 from models.schemas import (
     JobPosting, Candidate, ScreeningResult, BiasReport, Ranking,
 )
+from models.user import User
+from api.routes_auth import get_current_user
 from agents.orchestrator import run_pipeline
 from services.report_generator import generate_report
 
 router = APIRouter(prefix="/api/jobs", tags=["results"])
 
 
-@router.post("/{job_id}/run")
-async def run_screening(job_id: str, db: AsyncSession = Depends(get_db)):
-    """Run the full pipeline and stream progress via SSE."""
-    result = await db.execute(select(JobPosting).where(JobPosting.id == job_id))
+async def _get_user_job(job_id: str, user: User, db: AsyncSession) -> JobPosting:
+    result = await db.execute(
+        select(JobPosting).where(JobPosting.id == job_id, JobPosting.user_id == user.id)
+    )
     job = result.scalar_one_or_none()
     if not job:
         raise HTTPException(404, "Job not found")
+    return job
+
+
+@router.post("/{job_id}/run")
+async def run_screening(
+    job_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    job = await _get_user_job(job_id, user, db)
 
     cands_result = await db.execute(select(Candidate).where(Candidate.job_id == job_id))
     candidates = cands_result.scalars().all()
@@ -33,7 +45,6 @@ async def run_screening(job_id: str, db: AsyncSession = Depends(get_db)):
         for c in candidates
     ]
 
-    # Update job status
     job.status = "running"
     await db.commit()
 
@@ -44,8 +55,6 @@ async def run_screening(job_id: str, db: AsyncSession = Depends(get_db)):
             if event.get("step") == "done":
                 final_results = event.get("data", {}).get("results", {})
 
-        # Persist in a fresh session so we are not tied to the request-scoped session
-        # lifecycle, and so "saved" is only emitted after a successful commit.
         try:
             parsed_jd = final_results.get("parsed_jd", {})
             exps = final_results.get("explanations", {}).get("candidate_explanations", {})
@@ -58,7 +67,6 @@ async def run_screening(job_id: str, db: AsyncSession = Depends(get_db)):
                 job_row.parsed_jd = parsed_jd
                 job_row.status = "complete"
 
-                # Replace prior run data (avoids duplicate rows / scalar_one errors on re-run)
                 await persist_db.execute(delete(Ranking).where(Ranking.job_id == job_id))
                 await persist_db.execute(delete(ScreeningResult).where(ScreeningResult.job_id == job_id))
                 await persist_db.execute(delete(BiasReport).where(BiasReport.job_id == job_id))
@@ -118,11 +126,12 @@ async def run_screening(job_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/{job_id}/results")
-async def get_results(job_id: str, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(JobPosting).where(JobPosting.id == job_id))
-    job = result.scalar_one_or_none()
-    if not job:
-        raise HTTPException(404, "Job not found")
+async def get_results(
+    job_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    job = await _get_user_job(job_id, user, db)
 
     rankings_result = await db.execute(
         select(Ranking, Candidate, ScreeningResult)
@@ -176,9 +185,12 @@ async def get_results(job_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/{job_id}/report")
-async def download_report(job_id: str, db: AsyncSession = Depends(get_db)):
-    """Generate and return PDF report."""
-    data = await get_results(job_id, db)
+async def download_report(
+    job_id: str,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    data = await get_results(job_id, db, user)
 
     bias_report = data.get("bias_report") or {}
     rankings = data.get("rankings", [])

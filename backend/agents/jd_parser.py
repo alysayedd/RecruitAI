@@ -6,8 +6,16 @@ SYSTEM = (
 )
 
 BIAS_PHRASES = [
-    "young", "energetic team", "recent graduate preferred", "native speaker",
+    "young", "youthful", "energetic team", "recent graduate preferred",
+    "native speaker", "native english", "mother tongue",
     "rockstar", "ninja", "guru", "digital native", "culture fit", "clean-cut",
+    "fresh graduate only", "must be under", "must be over",
+    "manpower", "manning", "gentleman", "lady",
+    "he/she", "his/her",
+    "top-tier university", "prestigious university", "ivy league",
+    "local candidates only", "must be", "no relocation",
+    "strong man", "attractive", "presentable",
+    "boys", "girls",
 ]
 
 async def run_jd_parser(jd_text: str) -> dict:
@@ -26,6 +34,9 @@ Job Description:
 {jd_text[:3000]}
 """
     result = await call_llm(prompt, SYSTEM)
+
+    if "error" in result:
+        result["bias_flags"] = []
 
     # Fallback defaults
     result.setdefault("title", "Job Position")

@@ -4,7 +4,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
-from datetime import datetime
+from datetime import datetime, timezone
 import io
 
 
@@ -31,7 +31,7 @@ def generate_report(job_title: str, rankings: list, bias_report: dict, explanati
     story.append(Spacer(1, 1*cm))
     story.append(Paragraph("AI Recruitment Screening Report", title_style))
     story.append(Paragraph(f"Position: <b>{job_title}</b>", body_style))
-    story.append(Paragraph(f"Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}", small_style))
+    story.append(Paragraph(f"Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}", small_style))
     story.append(Paragraph(f"Total Candidates: {len(rankings)}", body_style))
     story.append(Paragraph(f"Shortlisted: {sum(1 for r in rankings if r.get('shortlisted'))}", body_style))
     story.append(Paragraph(f"Overall Bias Score: {bias_report.get('overall_bias_score', 0)}/100", body_style))
@@ -79,8 +79,10 @@ def generate_report(job_title: str, rankings: list, bias_report: dict, explanati
     story.append(Paragraph("Bias Analysis", heading_style))
     bias_data = [
         ["Metric", "Value", "Status"],
-        ["Gender Disparate Impact Ratio", f"{bias_report.get('gender_dir', 1.0):.3f}", "✓ Fair" if bias_report.get('gender_dir', 1.0) >= 0.8 else "⚠ Biased"],
-        ["Name-Origin Disparate Impact Ratio", f"{bias_report.get('name_origin_dir', 1.0):.3f}", "✓ Fair" if bias_report.get('name_origin_dir', 1.0) >= 0.8 else "⚠ Biased"],
+        ["Gender Selection Rate DIR", f"{bias_report.get('gender_dir', 1.0):.3f}", "✓ Fair" if bias_report.get('gender_dir', 1.0) >= 0.8 else "⚠ Biased"],
+        ["Gender Mean Score Ratio", f"{bias_report.get('gender_mean_dir', 1.0):.3f}", "✓ Fair" if bias_report.get('gender_mean_dir', 1.0) >= 0.85 else "⚠ Gap"],
+        ["Name-Origin Selection Rate DIR", f"{bias_report.get('name_origin_dir', 1.0):.3f}", "✓ Fair" if bias_report.get('name_origin_dir', 1.0) >= 0.8 else "⚠ Biased"],
+        ["Name-Origin Mean Score Ratio", f"{bias_report.get('name_origin_mean_dir', 1.0):.3f}", "✓ Fair" if bias_report.get('name_origin_mean_dir', 1.0) >= 0.85 else "⚠ Gap"],
         ["University Prestige Bias", "", "⚠ Detected" if bias_report.get('university_bias_detected') else "✓ Not Detected"],
         ["Overall Bias Score", f"{bias_report.get('overall_bias_score', 0)}/100", ""],
     ]

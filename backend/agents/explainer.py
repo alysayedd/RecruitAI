@@ -2,7 +2,9 @@ from agents.common import call_llm_text
 
 SYSTEM = (
     "You are a fair, transparent HR assistant. Explain recruitment decisions clearly and objectively. "
-    "Never reference candidate names or demographics in your reasoning."
+    "NEVER reference candidate names, gender, ethnicity, nationality, religion, age, university prestige, "
+    "or any demographic/proxy attribute in your reasoning. "
+    "Focus ONLY on job-relevant qualifications: skills, experience, education level/field, and achievements."
 )
 
 async def run_explainer(rankings: list, bias_report: dict, parsed_jd: dict) -> dict:
@@ -15,14 +17,14 @@ async def run_explainer(rankings: list, bias_report: dict, parsed_jd: dict) -> d
         prompt = f"""A candidate was ranked #{r['rank']} with a score of {r['adjusted_score']}/100.
 
 Score breakdown:
-- Skills match: {sb.get('skills_score', 0)}/40
+- Skills match: {sb.get('skills_score', 0)}/40 — matched: {sb.get('matched_skills', [])}, missing: {sb.get('missing_skills', [])}
 - Experience: {sb.get('experience_score', 0)}/30
 - Education: {sb.get('education_score', 0)}/20
 - Extras: {sb.get('extras_score', 0)}/10
 - Shortlisted: {r['shortlisted']}
 - Bias correction applied: {r['bias_corrected']}
 
-Write exactly 2 sentences explaining why this candidate received this ranking. Be specific about their strengths and gaps. Do not mention any names or demographics."""
+Write exactly 3 sentences: (1) what makes this candidate strong for the role, (2) where they fall short, (3) whether they should be considered further. Be specific. Do not mention names or demographics."""
 
         text = await call_llm_text(prompt, SYSTEM)
         explanations[cid] = text.strip()
