@@ -1,0 +1,32 @@
+Omar Khalil
+Alexandria, Egypt
+Email: omar.khalil@email.com
+Phone: +20 100 222 3344
+
+Summary
+Senior Full-Stack Engineer with 6 years of experience building production web applications. Strong in Python, TypeScript, and cloud infrastructure.
+
+Professional Experience
+
+Senior Software Engineer | FinEdge (2021 - Present)
+- Built FastAPI microservices serving 4M requests/day
+- Designed React + TypeScript dashboards used by 200+ enterprise clients
+- Migrated monolithic PostgreSQL schema to event-sourced architecture
+- Led adoption of Docker and GitHub Actions CI/CD across 12 services
+- Mentored 4 junior engineers through structured pairing sessions
+
+Software Engineer | DataHub (2019 - 2021)
+- Built GraphQL APIs in Node.js consumed by mobile and web clients
+- Optimised PostgreSQL queries reducing p95 latency from 800ms to 90ms
+- Implemented OAuth2 and role-based access control
+
+Junior Developer | StartupX (2018 - 2019)
+- Maintained legacy PHP backend during gradual migration to Python
+- Built internal admin React components
+
+Education
+Bachelor's Degree in Computer Engineering
+Alexandria University (2014 - 2018)
+
+Skills
+Python, FastAPI, Node.js, TypeScript, React, PostgreSQL, Redis, Docker, AWS (EC2, S3, RDS), Git, GitHub Actions, Kafka, GraphQL.

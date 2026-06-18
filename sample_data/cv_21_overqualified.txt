@@ -1,0 +1,31 @@
+Dr. Robert Anderson
+Boston, USA
+Email: robert.anderson@email.com
+Phone: +1 617 555 0177
+
+Summary
+Engineering Director with 18 years of experience. PhD in Computer Science. Currently exploring senior IC roles to return to hands-on coding.
+
+Experience
+
+Engineering Director | CloudCorp (2018 - Present)
+- Direct 4 teams (45 engineers) across infrastructure and platform
+- Set annual technical strategy and budget ($28M)
+- Last hands-on coding role was 7 years ago
+
+VP of Engineering | DataStartup (2014 - 2018)
+- Built engineering org from 6 to 70 people
+- Acquired by CloudCorp in 2018
+
+Senior Engineer → Staff Engineer | TechGiant (2008 - 2014)
+- Built distributed storage systems in Java and C++
+
+Education
+PhD in Computer Science (Distributed Systems)
+Stanford University (2004 - 2008)
+
+Bachelor's in Computer Science
+Harvard University (2000 - 2004)
+
+Skills
+Engineering leadership, technical strategy, hiring, performance management, Java, C++, Python (rusty), distributed systems, system design.

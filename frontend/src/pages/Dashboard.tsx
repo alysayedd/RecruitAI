@@ -98,7 +98,7 @@ export default function Dashboard({ onNavigate }: Props) {
   };
 
   return (
-    <div className="space-y-8 animate-fade-in text-white">
+    <div className="w-full space-y-8 animate-fade-in text-white">
       
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

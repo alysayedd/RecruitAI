@@ -14,6 +14,7 @@ interface AuthContextType {
   token: string | null
   loading: boolean
   pendingVerificationEmail: string | null
+  devVerificationCode: string | null
   login: (email: string, password: string) => Promise<void>
   signup: (name: string, email: string, password: string, role: 'student' | 'hr') => Promise<void>
   verifyEmail: (code: string) => Promise<void>
@@ -30,6 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'))
   const [loading, setLoading] = useState(true)
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null)
+  const [devVerificationCode, setDevVerificationCode] = useState<string | null>(null)
 
   useEffect(() => {
     if (token) {
@@ -49,16 +51,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = async (email: string, password: string) => {
-    const data = await apiLogin(email, password)
-    localStorage.setItem('token', data.access_token)
-    localStorage.setItem('user', JSON.stringify(data.user))
-    setToken(data.access_token)
-    setUser(data.user)
+    try {
+      const data = await apiLogin(email, password)
+      localStorage.setItem('token', data.access_token)
+      localStorage.setItem('user', JSON.stringify(data.user))
+      setToken(data.access_token)
+      setUser(data.user)
+    } catch (err: any) {
+      if (err?.response?.status === 403) {
+        try {
+          const res = await apiResendCode(email)
+          setPendingVerificationEmail(email)
+          setDevVerificationCode(res?.dev_code ?? null)
+          return
+        } catch {}
+      }
+      throw err
+    }
   }
 
   const signup = async (name: string, email: string, password: string, role: 'student' | 'hr') => {
-    await apiSignup(name, email, password, role)
+    const res = await apiSignup(name, email, password, role)
     setPendingVerificationEmail(email)
+    setDevVerificationCode(res?.dev_code ?? null)
   }
 
   const verifyEmail = async (code: string) => {
@@ -69,15 +84,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(data.access_token)
     setUser(data.user)
     setPendingVerificationEmail(null)
+    setDevVerificationCode(null)
   }
 
   const resendCode = async () => {
     if (!pendingVerificationEmail) throw new Error('No pending verification')
-    await apiResendCode(pendingVerificationEmail)
+    const res = await apiResendCode(pendingVerificationEmail)
+    setDevVerificationCode(res?.dev_code ?? null)
   }
 
   const clearPendingVerification = () => {
     setPendingVerificationEmail(null)
+    setDevVerificationCode(null)
   }
 
   const updateUser = (nextUser: User) => {
@@ -94,7 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, pendingVerificationEmail, login, signup, verifyEmail, resendCode, clearPendingVerification, updateUser, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, pendingVerificationEmail, devVerificationCode, login, signup, verifyEmail, resendCode, clearPendingVerification, updateUser, logout }}>
       {children}
     </AuthContext.Provider>
   )

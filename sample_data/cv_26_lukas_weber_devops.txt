@@ -1,0 +1,25 @@
+Lukas Weber
+Berlin, Germany
+Email: lukas.weber@email.com
+Phone: +49 30 1234 5678
+
+Summary
+Site Reliability Engineer with 6 years of experience scaling infrastructure for high-traffic platforms.
+
+Experience
+
+Senior SRE | StreamHub (2021 - Present)
+- Operate Kubernetes clusters serving 12B requests/month
+- Built observability platform (Prometheus, Loki, Tempo) cutting MTTR by 70%
+- Introduced SLO-based alerting; reduced pager noise by 80%
+
+DevOps Engineer | LogiNet (2019 - 2021)
+- Migrated 30 services from VMs to ECS Fargate
+- Wrote Terraform modules adopted across all teams
+
+Education
+Master's in Computer Science
+TU München (2015 - 2019)
+
+Skills
+AWS, GCP, Kubernetes, Docker, Terraform, Pulumi, Python, Go, Bash, Prometheus, Grafana, Loki, OpenTelemetry, ArgoCD, German, English.

@@ -1,0 +1,20 @@
+Job Title: Frontend Web Developer
+
+We are looking for a skilled Frontend Web Developer to join our team. 
+
+Required Skills:
+- Strong proficiency in React and TypeScript.
+- Experience with Tailwind CSS.
+- Solid understanding of Git version control.
+
+Preferred Skills:
+- Experience with Next.js is a plus.
+- Familiarity with CI/CD pipelines.
+
+Experience: Minimum 2 years of professional experience building web applications.
+Education: Bachelor's degree in Computer Science or related field.
+
+Responsibilities:
+- Build reusable code and libraries for future use.
+- Ensure the technical feasibility of UI/UX designs.
+- Optimize applications for maximum speed and scalability.

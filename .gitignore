@@ -15,6 +15,8 @@ backend/uploads/
 backend/recruitment_ai.db
 *.sqlite
 *.db
+*.db-shm
+*.db-wal
 
 # Node
 frontend/node_modules/

@@ -5,7 +5,7 @@ import smtplib
 import logging
 from email.message import EmailMessage
 from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Header, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 from pydantic import BaseModel, EmailStr
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 class SignupRequest(BaseModel):
@@ -46,6 +46,7 @@ class UserResponse(BaseModel):
     email: str
     role: str
     company_name: str | None = None
+    api_key: str | None = None
 
 
 class TokenResponse(BaseModel):
@@ -76,6 +77,8 @@ class ResendCodeRequest(BaseModel):
 class SignupResponse(BaseModel):
     message: str
     email: str
+    dev_code: str | None = None
+    email_error: str | None = None
 
 
 VERIFICATION_CODE_EXPIRY_MINUTES = 10
@@ -85,9 +88,25 @@ def _generate_verification_code() -> str:
     return f"{secrets.randbelow(900000) + 100000}"
 
 
+def _generate_api_key() -> str:
+    return f"rai_{secrets.token_urlsafe(32)}"
+
+
+def _smtp_configured() -> bool:
+    pwd = settings.SMTP_PASSWORD or ""
+    if "PASTE" in pwd.upper() or not pwd.strip():
+        return False
+    return bool(settings.SMTP_HOST and (settings.SMTP_FROM_EMAIL or settings.SMTP_USERNAME))
+
+
 def _send_verification_email(recipient: str, code: str) -> None:
     from_email = settings.SMTP_FROM_EMAIL or settings.SMTP_USERNAME
     if not settings.SMTP_HOST or not from_email:
+        print(f"\n========================================")
+        print(f"  VERIFICATION CODE for {recipient}")
+        print(f"  CODE: {code}")
+        print(f"  (SMTP not configured — code shown here for dev use)")
+        print(f"========================================\n", flush=True)
         logger.warning("SMTP not configured — verification code for %s: %s", recipient, code)
         return
 
@@ -95,20 +114,38 @@ def _send_verification_email(recipient: str, code: str) -> None:
     sender_name = settings.SMTP_FROM_NAME or "RecruitAI"
     message["From"] = f"{sender_name} <{from_email}>"
     message["To"] = recipient
-    message["Subject"] = f"Your RecruitAI verification code: {code}"
-    message.set_content(
-        f"Welcome to RecruitAI!\n\n"
-        f"Your verification code is: {code}\n\n"
-        f"This code expires in {VERIFICATION_CODE_EXPIRY_MINUTES} minutes.\n\n"
-        f"If you didn't create an account, you can ignore this email."
+    message["Reply-To"] = from_email
+    message["Subject"] = f"RecruitAI verification code {code}"
+    plain = (
+        f"Hi,\n\n"
+        f"Your RecruitAI verification code is: {code}\n\n"
+        f"It expires in {VERIFICATION_CODE_EXPIRY_MINUTES} minutes.\n\n"
+        f"If you did not request this, ignore this email.\n\n"
+        f"— RecruitAI"
     )
+    html = (
+        f"<p>Hi,</p>"
+        f"<p>Your RecruitAI verification code is:</p>"
+        f"<p style='font-size:24px;letter-spacing:4px;font-family:monospace;"
+        f"background:#f4f4f4;padding:12px 16px;border-radius:6px;display:inline-block'>"
+        f"<b>{code}</b></p>"
+        f"<p>It expires in {VERIFICATION_CODE_EXPIRY_MINUTES} minutes.</p>"
+        f"<p style='color:#666;font-size:12px'>If you did not request this, ignore this email.</p>"
+        f"<p>— RecruitAI</p>"
+    )
+    message.set_content(plain)
+    message.add_alternative(html, subtype="html")
 
+    print(f"[email] sending code to {recipient} via {settings.SMTP_HOST}:{settings.SMTP_PORT}", flush=True)
     with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT, timeout=20) as smtp:
         if settings.SMTP_USE_TLS:
             smtp.starttls()
         if settings.SMTP_USERNAME and settings.SMTP_PASSWORD:
             smtp.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
-        smtp.send_message(message)
+        refused = smtp.send_message(message)
+    if refused:
+        raise RuntimeError(f"SMTP refused recipients: {refused}")
+    print(f"[email] OK -> {recipient}", flush=True)
 
 
 def to_user_response(user: User) -> UserResponse:
@@ -118,6 +155,7 @@ def to_user_response(user: User) -> UserResponse:
         email=user.email,
         role=user.role,
         company_name=user.company_name,
+        api_key=user.api_key,
     )
 
 
@@ -129,9 +167,20 @@ def create_access_token(data: dict) -> str:
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
     db: AsyncSession = Depends(get_db),
 ) -> User:
+    if x_api_key:
+        result = await db.execute(select(User).where(User.api_key == x_api_key))
+        user = result.scalar_one_or_none()
+        if user is None:
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid API key")
+        return user
+
+    if credentials is None:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Missing credentials")
+
     token = credentials.credentials
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
@@ -170,6 +219,8 @@ async def signup(body: SignupRequest, db: AsyncSession = Depends(get_db)):
         existing_user.company_name = body.company_name.strip() if body.company_name else None
         existing_user.verification_code = code
         existing_user.verification_code_expires_at = expires_at
+        if not existing_user.api_key:
+            existing_user.api_key = _generate_api_key()
     else:
         user = User(
             id=str(uuid.uuid4()),
@@ -181,18 +232,30 @@ async def signup(body: SignupRequest, db: AsyncSession = Depends(get_db)):
             is_verified=False,
             verification_code=code,
             verification_code_expires_at=expires_at,
+            api_key=_generate_api_key(),
             created_at=datetime.now(timezone.utc),
         )
         db.add(user)
 
     await db.commit()
 
+    email_error: str | None = None
     try:
         await asyncio.to_thread(_send_verification_email, body.email, code)
     except Exception as exc:
-        logger.error("Failed to send verification email: %s", exc)
+        email_error = f"{type(exc).__name__}: {exc}"
+        logger.error("Failed to send verification email to %s: %s", body.email, email_error)
+        print(f"[email] FAILED -> {body.email}: {email_error}", flush=True)
 
-    return SignupResponse(message="Verification code sent", email=body.email)
+    if _smtp_configured() and not email_error:
+        return SignupResponse(message="Verification code sent to your email", email=body.email)
+    return SignupResponse(
+        message=("Email failed — use the code below." if email_error else
+                 "SMTP not configured. Use the code below to verify (dev mode)."),
+        email=body.email,
+        dev_code=code,
+        email_error=email_error,
+    )
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -225,8 +288,12 @@ async def verify_email(body: VerifyEmailRequest, db: AsyncSession = Depends(get_
     if not user.verification_code or user.verification_code != body.code.strip():
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid verification code")
 
-    if user.verification_code_expires_at and datetime.now(timezone.utc) > user.verification_code_expires_at:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Verification code has expired. Please request a new one.")
+    expires_at = user.verification_code_expires_at
+    if expires_at is not None:
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) > expires_at:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Verification code has expired. Please request a new one.")
 
     user.is_verified = True
     user.verification_code = None
@@ -256,12 +323,23 @@ async def resend_code(body: ResendCodeRequest, db: AsyncSession = Depends(get_db
     user.verification_code_expires_at = datetime.now(timezone.utc) + timedelta(minutes=VERIFICATION_CODE_EXPIRY_MINUTES)
     await db.commit()
 
+    email_error: str | None = None
     try:
         await asyncio.to_thread(_send_verification_email, body.email, code)
     except Exception as exc:
-        logger.error("Failed to send verification email: %s", exc)
+        email_error = f"{type(exc).__name__}: {exc}"
+        logger.error("Failed to send verification email to %s: %s", body.email, email_error)
+        print(f"[email] FAILED -> {body.email}: {email_error}", flush=True)
 
-    return SignupResponse(message="Verification code sent", email=body.email)
+    if _smtp_configured() and not email_error:
+        return SignupResponse(message="Verification code sent to your email", email=body.email)
+    return SignupResponse(
+        message=("Email failed — use the code below." if email_error else
+                 "SMTP not configured. Use the code below to verify (dev mode)."),
+        email=body.email,
+        dev_code=code,
+        email_error=email_error,
+    )
 
 
 @router.get("/me", response_model=UserResponse)
@@ -304,6 +382,30 @@ async def change_password(
     user.hashed_password = pwd_context.hash(body.new_password)
     await db.commit()
     return {"message": "Password changed successfully"}
+
+
+@router.post("/rotate-api-key", response_model=UserResponse)
+async def rotate_api_key(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    user.api_key = _generate_api_key()
+    await db.commit()
+    await db.refresh(user)
+    return to_user_response(user)
+
+
+async def get_user_by_api_key(
+    x_api_key: str | None = Header(default=None, alias="X-API-Key"),
+    db: AsyncSession = Depends(get_db),
+) -> User:
+    if not x_api_key:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Missing X-API-Key header")
+    result = await db.execute(select(User).where(User.api_key == x_api_key))
+    user = result.scalar_one_or_none()
+    if user is None:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid API key")
+    return user
 
 
 @router.delete("/me")

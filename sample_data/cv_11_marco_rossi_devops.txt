@@ -1,0 +1,26 @@
+Marco Rossi
+Milan, Italy
+Email: marco.rossi@email.com
+Phone: +39 02 1234 5678
+
+Summary
+DevOps Engineer with 7 years of experience in cloud infrastructure, CI/CD, and observability.
+
+Experience
+
+Senior DevOps Engineer | Aurelia Bank (2020 - Present)
+- Built and maintain Kubernetes clusters across 4 AWS regions
+- Reduced deployment time from 45 minutes to 6 minutes with parallel pipelines
+- Implemented zero-downtime rolling updates and automatic rollback
+- Wrote Terraform modules adopted across 15 teams
+
+DevOps Engineer | MediaCo (2017 - 2020)
+- Migrated monolithic app to ECS Fargate with blue-green deployments
+- Designed Prometheus + Grafana stack monitoring 200+ services
+
+Education
+Bachelor's Degree in Computer Engineering
+Politecnico di Milano (2013 - 2017)
+
+Skills
+AWS, Kubernetes, Docker, Terraform, Ansible, Python, Bash, GitHub Actions, GitLab CI, Prometheus, Grafana, ELK Stack, Linux, Helm.

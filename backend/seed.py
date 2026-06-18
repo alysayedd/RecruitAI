@@ -91,6 +91,7 @@ async def main():
                 email=email,
                 hashed_password=pwd.hash("demo123"),
                 role="hr",
+                is_verified=True,
                 created_at=datetime.now(timezone.utc),
             )
             db.add(user)

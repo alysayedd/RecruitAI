@@ -39,3 +39,15 @@ async def init_db():
                 await conn.exec_driver_sql("ALTER TABLE users ADD COLUMN verification_code VARCHAR")
             if "verification_code_expires_at" not in columns:
                 await conn.exec_driver_sql("ALTER TABLE users ADD COLUMN verification_code_expires_at DATETIME")
+            if "api_key" not in columns:
+                await conn.exec_driver_sql("ALTER TABLE users ADD COLUMN api_key VARCHAR")
+                await conn.exec_driver_sql(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS ix_users_api_key ON users(api_key)"
+                )
+                import secrets as _secrets
+                rows = await conn.exec_driver_sql("SELECT id FROM users WHERE api_key IS NULL")
+                for (uid,) in rows.fetchall():
+                    await conn.exec_driver_sql(
+                        "UPDATE users SET api_key = ? WHERE id = ?",
+                        (f"rai_{_secrets.token_urlsafe(32)}", uid),
+                    )

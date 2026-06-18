@@ -144,7 +144,7 @@ export default function Results({ jobId }: Props) {
 
   return (
     <div className="min-h-full text-white relative overflow-hidden flex flex-col">
-      <div className="relative z-10 max-w-5xl mx-auto w-full space-y-6 animate-fade-in pb-12">
+      <div className="relative z-10 w-full space-y-6 animate-fade-in pb-12">
         {/* Header */}
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>

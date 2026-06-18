@@ -39,9 +39,20 @@ def generate_report(job_title: str, rankings: list, bias_report: dict, explanati
 
     # ── Executive Summary ────────────────────────────────────────────────────
     story.append(Paragraph("Executive Summary", heading_style))
-    summary = explanations.get("batch_summary", "No summary available.")
+    summary = (explanations.get("batch_summary") or "").strip()
+    if not summary or summary.lower().startswith("error"):
+        # LLM batch summary missing or errored — synthesize from the data
+        total = len(rankings)
+        shortlisted = sum(1 for r in rankings if r.get("shortlisted"))
+        avg = sum(r.get("adjusted_score", 0) for r in rankings) / max(total, 1)
+        bias_score = bias_report.get("overall_bias_score", 0)
+        summary = (
+            f"Screened {total} candidate{'s' if total != 1 else ''} for this position; "
+            f"{shortlisted} were shortlisted. Mean adjusted score: {avg:.1f}/100. "
+            f"Overall measured bias: {bias_score}/100."
+        )
     story.append(Paragraph(summary, body_style))
-    bias_narrative = explanations.get("bias_narrative", "")
+    bias_narrative = (explanations.get("bias_narrative") or "").strip()
     if bias_narrative:
         story.append(Paragraph(bias_narrative, body_style))
     story.append(Spacer(1, 0.5*cm))

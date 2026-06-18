@@ -1,0 +1,24 @@
+Kareem Abdelrahman
+Giza, Egypt
+Email: kareem.abdelrahman@email.com
+Phone: +20 109 888 7766
+
+Summary
+Mobile Engineer with 4 years building cross-platform apps and native Android features.
+
+Experience
+
+Mobile Engineer | RideHop (2021 - Present)
+- Built driver-side React Native app (1M+ installs in MENA)
+- Wrote native Android modules in Kotlin for background location and push
+- Reduced crash-free sessions issue from 96.1% to 99.6%
+
+Junior Android Developer | AppForge (2020 - 2021)
+- Built Android consumer app in Kotlin and Jetpack Compose
+
+Education
+Bachelor's in Computer Science
+Ain Shams University (2016 - 2020)
+
+Skills
+React Native, TypeScript, Kotlin, Android SDK, Jetpack Compose, Swift (basic), Firebase, Crashlytics, Git, Arabic, English.

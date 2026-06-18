@@ -1,0 +1,25 @@
+Tom Wilson
+Manchester, UK
+Email: tom.wilson@email.com
+Phone: +44 161 555 0123
+
+Summary
+Embedded Systems Engineer with 8 years of experience in C/C++ firmware for IoT devices.
+
+Experience
+
+Senior Embedded Engineer | SensorTech (2019 - Present)
+- Wrote firmware in C and C++ for ARM Cortex-M microcontrollers
+- Designed BLE and LoRaWAN protocol stacks
+- Optimised power consumption for battery-powered sensors (3-year lifetime)
+
+Embedded Engineer | AutoMotive Ltd (2016 - 2019)
+- Wrote real-time control software for engine management units
+- Worked with CAN bus, AUTOSAR, MISRA-C standards
+
+Education
+Bachelor's in Electrical Engineering
+University of Manchester (2012 - 2016)
+
+Skills
+C, C++, ARM assembly, FreeRTOS, embedded Linux, BLE, LoRaWAN, CAN bus, AUTOSAR, oscilloscope, soldering, Git.

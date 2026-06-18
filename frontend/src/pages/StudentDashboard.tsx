@@ -109,7 +109,7 @@ export default function StudentDashboard() {
           </defs>
         </svg>
 
-        <div className="relative z-10 max-w-5xl mx-auto w-full space-y-6 animate-fade-in pb-12">
+        <div className="relative z-10 w-full space-y-6 animate-fade-in pb-12">
           {/* Header */}
           <div className="flex items-start justify-between">
             <div>
@@ -271,7 +271,7 @@ export default function StudentDashboard() {
 
   return (
     <div className="min-h-full text-white relative overflow-hidden flex flex-col">
-      <div className="relative z-10 max-w-5xl mx-auto w-full space-y-8 animate-fade-in pb-12">
+      <div className="relative z-10 w-full space-y-8 animate-fade-in pb-12">
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-2">RecruitAI Workspace</p>
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">Student Dashboard</h1>

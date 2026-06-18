@@ -161,7 +161,7 @@ export default function NewJob({
           </defs>
         </svg>
 
-        <div className="relative z-10 max-w-5xl mx-auto space-y-8">
+        <div className="relative z-10 w-full space-y-8">
 
           {/* Header */}
           <div>
@@ -400,7 +400,7 @@ export default function NewJob({
 
       </svg>
 
-      <div className="relative z-10 max-w-4xl mx-auto">
+      <div className="relative z-10 w-full">
 
         {/* Header */}
         <div className="mb-10">

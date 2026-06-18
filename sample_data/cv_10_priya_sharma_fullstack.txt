@@ -1,0 +1,25 @@
+Priya Sharma
+Bangalore, India
+Email: priya.sharma@email.com
+Phone: +91 98 7654 3210
+
+Summary
+Full-Stack Engineer with 4 years of experience shipping React and Python applications.
+
+Experience
+
+Software Engineer | Flipnest (2021 - Present)
+- Built and maintained checkout flow in React + Redux serving 30M monthly users
+- Wrote Django REST APIs and Celery tasks for order processing
+- Reduced page load time from 5.2s to 1.4s via code splitting and image optimisation
+
+Software Engineer Intern → Junior | TechSpire (2020 - 2021)
+- Built admin dashboard in Next.js
+- Wrote unit tests reaching 78% backend coverage
+
+Education
+Bachelor of Technology in Computer Science
+Indian Institute of Technology Bombay (2016 - 2020)
+
+Skills
+React, Redux, Next.js, TypeScript, Python, Django, FastAPI, PostgreSQL, Celery, Redis, Docker, AWS, Jest, Cypress, Git.

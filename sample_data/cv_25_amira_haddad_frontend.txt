@@ -1,0 +1,24 @@
+Amira Haddad
+Beirut, Lebanon
+Email: amira.haddad@email.com
+Phone: +961 1 234 567
+
+Summary
+Frontend Engineer with 3 years of experience focusing on React applications, design systems, and developer tooling.
+
+Experience
+
+Frontend Engineer | Banca Online (2021 - Present)
+- Lead developer of the public-facing banking dashboard (React + TypeScript)
+- Migrated 90 legacy class components to hooks; cut bundle size by 28%
+- Co-authored internal design system used by 6 product teams
+
+Junior Frontend Developer | LocalCommerce (2020 - 2021)
+- Built e-commerce storefront in Vue.js, later migrated to Next.js
+
+Education
+Bachelor's in Software Engineering
+American University of Beirut (2016 - 2020)
+
+Skills
+React, TypeScript, Next.js, Vue.js, Tailwind CSS, Storybook, Vitest, Playwright, REST APIs, GraphQL, Figma, Arabic, English, French, Git.

@@ -1,0 +1,31 @@
+Mid-Level Frontend Developer
+
+Company: Lumen Studios
+Location: Remote
+Type: Full-time
+
+About the Role
+We build dashboards and design tools for creative teams. We need a Frontend Developer who cares about UI craft and ships clean, accessible interfaces.
+
+Responsibilities
+- Build new product features in React + TypeScript
+- Implement responsive UI from Figma designs
+- Write component tests and care about accessibility (WCAG 2.1)
+- Collaborate with backend engineers on API contracts
+- Profile and optimise rendering performance
+
+Required Skills
+- 3+ years of frontend development experience
+- Strong React and TypeScript skills
+- Comfortable with Tailwind CSS or styled-components
+- Experience consuming REST APIs and handling async state
+- Familiarity with build tools (Vite, Webpack)
+
+Nice to Have
+- Next.js or Remix
+- Storybook
+- Animation libraries (Framer Motion, GSAP)
+- Some backend exposure (Node.js)
+
+Education
+Bachelor's degree in any field. Self-taught candidates with strong portfolios are welcome.

@@ -1,12 +1,23 @@
 import json
 import asyncio
 import re
-import httpx
-from google import genai
+import logging
+from openai import AsyncOpenAI, APIStatusError
 from config import settings
 
-OLLAMA_URL = f"{settings.OLLAMA_BASE_URL}/api/generate"
-GOOGLE_API_KEY = settings.GOOGLE_API_KEY
+logger = logging.getLogger(__name__)
+
+_client: AsyncOpenAI | None = None
+
+
+def _get_client() -> AsyncOpenAI:
+    global _client
+    if _client is None:
+        _client = AsyncOpenAI(
+            api_key=settings.GROQ_API_KEY,
+            base_url=settings.GROQ_BASE_URL,
+        )
+    return _client
 
 
 def _extract_json(text: str) -> dict:
@@ -29,58 +40,76 @@ def _extract_json(text: str) -> dict:
     return {}
 
 
-async def _ollama_request(
-    prompt: str,
-    system: str = "",
-    options: dict | None = None,
-    max_retries: int = 3,
-) -> str:
-    payload = {
-        "model": settings.OLLAMA_MODEL,
-        "prompt": prompt,
-        "stream": False,
-        "options": options or {},
+def _schema_to_instruction(response_schema) -> str:
+    """Render a Pydantic model (or dict schema) as a JSON-only instruction."""
+    if response_schema is None:
+        return ""
+    try:
+        schema = response_schema.model_json_schema() if hasattr(response_schema, "model_json_schema") else response_schema
+        return (
+            "\n\nRespond with ONLY a single valid JSON object matching this schema "
+            "(no prose, no markdown fences):\n" + json.dumps(schema)
+        )
+    except Exception:
+        return "\n\nRespond with ONLY a single valid JSON object (no prose, no markdown fences)."
+
+
+async def _groq_request(prompt: str, system: str = "", temperature: float = 0.1, response_schema=None) -> str:
+    """Groq (OpenAI-compatible) provider with automatic rate-limit retry.
+    Uses JSON mode when a response_schema is provided for reliable structured output."""
+    client = _get_client()
+    sys_text = system or ""
+    if response_schema is not None:
+        sys_text = (sys_text + _schema_to_instruction(response_schema)).strip()
+
+    messages = []
+    if sys_text:
+        messages.append({"role": "system", "content": sys_text})
+    messages.append({"role": "user", "content": prompt})
+
+    kwargs = {
+        "model": settings.GROQ_MODEL,
+        "messages": messages,
+        "temperature": temperature,
+        "max_tokens": 4096,
     }
-    if system:
-        payload["system"] = system
+    if response_schema is not None:
+        kwargs["response_format"] = {"type": "json_object"}
 
+    max_rate_limit_retries = 5
+    for attempt in range(max_rate_limit_retries):
+        try:
+            response = await client.chat.completions.create(**kwargs)
+            return response.choices[0].message.content or ""
+        except APIStatusError as e:
+            is_rate_limit = e.status_code in (429, 503, 529)
+            if is_rate_limit and attempt < max_rate_limit_retries - 1:
+                delay = 15 * (attempt + 1)
+                retry_after = None
+                if e.response is not None:
+                    retry_after = e.response.headers.get("retry-after")
+                if retry_after:
+                    try:
+                        delay = float(retry_after)
+                    except ValueError:
+                        pass
+                logger.warning(
+                    f"Rate limited by Groq API ({e.status_code}). "
+                    f"Waiting {delay:.0f}s before retry {attempt + 2}/{max_rate_limit_retries}..."
+                )
+                await asyncio.sleep(delay)
+            else:
+                raise
+
+
+async def call_llm(prompt: str, system: str = "", max_retries: int = 3, response_schema=None) -> dict:
+    """Call Groq and parse JSON response.
+    Uses JSON mode when response_schema is provided. Automatically handles rate limits.
+    Temperature pinned to 0.0 for scoring determinism (still not fully deterministic on LLMs,
+    but cuts variance ~50% — paired with the identical-CV normalization in the orchestrator)."""
     for attempt in range(max_retries):
         try:
-            async with httpx.AsyncClient(timeout=120) as client:
-                resp = await client.post(OLLAMA_URL, json=payload)
-                resp.raise_for_status()
-                data = resp.json()
-                if "error" in data:
-                    raise RuntimeError(data["error"])
-                return data.get("response", "")
-        except Exception as e:
-            err = str(e)
-            if attempt < max_retries - 1:
-                await asyncio.sleep(2 ** attempt)
-            else:
-                raise RuntimeError(f"Ollama request failed after {max_retries} retries: {err}")
-    raise RuntimeError("Ollama request failed")
-
-
-async def _gemini_request(prompt: str, system: str = "", temperature: float = 0.1) -> str:
-    client = genai.Client(api_key=GOOGLE_API_KEY)
-    full_prompt = f"{system}\n\n{prompt}" if system else prompt
-    response = client.models.generate_content(
-        model=settings.GOOGLE_MODEL,
-        contents=full_prompt,
-        config={"temperature": temperature},
-    )
-    return response.text
-
-
-async def call_llm(prompt: str, system: str = "", max_retries: int = 3) -> dict:
-    provider = settings.LLM_PROVIDER
-    for attempt in range(max_retries):
-        try:
-            if provider == "google":
-                text = await _gemini_request(prompt, system, 0.1)
-            else:
-                text = await _ollama_request(prompt, system, {"temperature": 0.1, "num_predict": 1500}, max_retries=1)
+            text = await _groq_request(prompt, system, 0.0, response_schema=response_schema)
             result = _extract_json(text)
             if result:
                 return result
@@ -95,13 +124,11 @@ async def call_llm(prompt: str, system: str = "", max_retries: int = 3) -> dict:
 
 
 async def call_llm_text(prompt: str, system: str = "", max_retries: int = 3) -> str:
-    provider = settings.LLM_PROVIDER
+    """Call Groq and return raw text response.
+    Automatically handles rate limits with smart retry."""
     for attempt in range(max_retries):
         try:
-            if provider == "google":
-                return await _gemini_request(prompt, system, 0.2)
-            else:
-                return await _ollama_request(prompt, system, {"temperature": 0.2, "num_predict": 800}, max_retries=1)
+            return await _groq_request(prompt, system, 0.2)
         except Exception as e:
             if attempt < max_retries - 1:
                 await asyncio.sleep(2 ** attempt)

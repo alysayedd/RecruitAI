@@ -1,0 +1,25 @@
+Chen Wei
+Singapore
+Email: chen.wei@email.com
+Phone: +65 9123 4567
+
+Summary
+Backend Engineer with 6 years of experience building high-throughput systems in fintech.
+
+Experience
+
+Senior Backend Engineer | TradeWave (2020 - Present)
+- Built low-latency order matching engine in Go (sub-millisecond p99)
+- Designed event-sourced ledger storing $4B in daily volume
+- Led incident response for production outages; reduced MTTR from 45 to 12 minutes
+
+Backend Engineer | RemitNet (2018 - 2020)
+- Wrote Python services for compliance screening and KYC
+- Integrated 6 payment providers behind a unified API
+
+Education
+Bachelor's in Computer Science
+National University of Singapore (2014 - 2018)
+
+Skills
+Go, Python, FastAPI, gRPC, PostgreSQL, Redis, Kafka, ClickHouse, Docker, Kubernetes, AWS, Linux, Git, distributed systems, event sourcing, Mandarin.

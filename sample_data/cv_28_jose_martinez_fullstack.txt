@@ -1,0 +1,25 @@
+José Martínez
+Buenos Aires, Argentina
+Email: jose.martinez@email.com
+Phone: +54 11 1234 5678
+
+Summary
+Full-Stack Engineer with 5 years of experience building SaaS products for Latin American fintech.
+
+Experience
+
+Senior Full-Stack Engineer | PagaYa (2022 - Present)
+- Built FastAPI microservices for credit underwriting
+- Designed React + TypeScript dashboards for risk analysts
+- Reduced PostgreSQL query latency p95 from 1.2s to 110ms
+
+Full-Stack Engineer | PymeFlow (2020 - 2022)
+- Built Django + React invoicing app for small businesses
+- Integrated MercadoPago and Stripe payment flows
+
+Education
+Bachelor's in Software Engineering
+Universidad de Buenos Aires (2016 - 2020)
+
+Skills
+Python, FastAPI, Django, React, TypeScript, Next.js, PostgreSQL, Redis, Docker, AWS, Stripe, MercadoPago, Spanish, English, Git.

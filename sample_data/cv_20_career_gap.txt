@@ -1,0 +1,31 @@
+Hassan Younis
+Cairo, Egypt
+Email: hassan.younis@email.com
+Phone: +20 122 444 5566
+
+Summary
+Full-Stack Engineer returning after a 2-year career break (family caregiving). Updating skills with self-study and freelance work.
+
+Experience
+
+Freelance Web Developer (2024 - Present)
+- Built three React + Node.js client projects (e-commerce, internal CRM, marketing site)
+- Completed AWS Solutions Architect Associate certification
+
+CAREER BREAK (2022 - 2024)
+- Family caregiving; continued informal learning (online courses, side projects)
+
+Senior Software Engineer | DataFlow (2019 - 2022)
+- Built React + Django dashboards for analytics product
+- Wrote PostgreSQL schema migrations and Celery workers
+- Led migration to TypeScript across frontend codebase
+
+Software Engineer | WebStart (2016 - 2019)
+- Built and maintained React applications and Node.js APIs
+
+Education
+Bachelor's Degree in Computer Science
+Cairo University (2012 - 2016)
+
+Skills
+JavaScript, TypeScript, React, Node.js, Python, Django, FastAPI, PostgreSQL, Docker, AWS (Solutions Architect Associate), Git.

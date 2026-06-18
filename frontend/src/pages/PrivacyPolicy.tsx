@@ -36,8 +36,10 @@ export default function PrivacyPolicy({ onBack }: Props) {
         <section className="space-y-4">
           <h2 className="text-xl font-semibold">3. AI Processing</h2>
           <p className="text-gray-400 leading-relaxed">
-            All AI processing runs locally via Ollama (llama3.2). Your CVs, job descriptions, and
-            screening data never leave your machine. No data is sent to external API providers.
+            AI processing is powered by Groq cloud inference running Llama 3.3 70B. Your CVs and job
+            descriptions are sent securely to Groq's API for analysis. Groq's data usage policy states
+            that prompts and completions are not used for training. All results are stored locally in
+            your own database.
           </p>
         </section>
 

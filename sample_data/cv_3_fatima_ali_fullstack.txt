@@ -1,0 +1,16 @@
+Fatima Ali
+Dubai, UAE
+Email: fatima.ali@email.com
+
+Professional Experience
+Full Stack Software Engineer (2020 - 2024)
+- Built backend APIs with Python and FastAPI.
+- Designed frontend interfaces using React and Redux.
+- Managed PostgreSQL databases and deployed on AWS.
+
+Education
+Master's in Software Engineering
+American University in Cairo (2018 - 2020)
+
+Skills
+Python, FastAPI, React, Node.js, PostgreSQL, AWS, Docker.

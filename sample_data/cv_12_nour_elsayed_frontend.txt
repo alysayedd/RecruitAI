@@ -1,0 +1,26 @@
+Nour Elsayed
+Cairo, Egypt
+Email: nour.elsayed@email.com
+Phone: +20 122 333 4455
+
+Summary
+Frontend Engineer with 3 years of experience building accessible, design-driven web applications.
+
+Experience
+
+Frontend Engineer | Designly (2022 - Present)
+- Built design tool components in React + TypeScript and Tailwind CSS
+- Improved Lighthouse accessibility score from 72 to 96 across all pages
+- Implemented Framer Motion animations powering interactive product demos
+- Maintained Storybook library of 80+ components
+
+Junior Frontend Developer | WebStudio (2021 - 2022)
+- Built marketing pages in Next.js
+- Collaborated with designers on Figma-to-code workflow
+
+Education
+Bachelor's Degree in Computer Science
+German University in Cairo (2017 - 2021)
+
+Skills
+React, TypeScript, Next.js, Tailwind CSS, Framer Motion, Storybook, Vite, REST APIs, Jest, React Testing Library, Figma, Git, accessibility (WCAG 2.1), Arabic.

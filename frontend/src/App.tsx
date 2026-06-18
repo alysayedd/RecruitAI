@@ -9,6 +9,7 @@ import StudentDashboard from './pages/StudentDashboard'
 import Chat from './pages/Chat'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import VerifyEmail from './pages/VerifyEmail'
 import Settings from './pages/Settings'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 
@@ -22,7 +23,7 @@ type Page =
   | 'settings'
 
 function AppContent() {
-  const { user, loading, logout } = useAuth()
+  const { user, loading, logout, pendingVerificationEmail } = useAuth()
 
   const [page, setPage] = useState<Page>('dashboard')
   const [activeJobId, setActiveJobId] = useState<string | null>(null)
@@ -59,6 +60,9 @@ function AppContent() {
 
   /* AUTH */
   if (!user) {
+    if (pendingVerificationEmail) {
+      return <VerifyEmail onBackToLogin={() => setAuthView('login')} />
+    }
     if (authView === 'signup') {
       return (
         <Signup
@@ -317,9 +321,9 @@ function AppContent() {
         </div>
 
         {/* CONTENT */}
-        <div className="flex-1 overflow-y-auto px-10 py-6">
+        <div className="flex-1 overflow-y-auto px-6 py-6 scroll-smooth">
 
-          <div className="min-h-full flex items-center justify-center">
+          <div className="w-full min-h-full">
 
             {page === 'chat' && <Chat />}
 

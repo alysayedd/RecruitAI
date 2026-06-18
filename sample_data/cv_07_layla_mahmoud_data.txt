@@ -1,0 +1,30 @@
+Layla Mahmoud
+Cairo, Egypt
+Email: layla.mahmoud@email.com
+Phone: +20 111 555 9988
+
+Summary
+Data Scientist with 4 years of experience building ML models for fintech and e-commerce. Skilled in Python, SQL, and end-to-end model deployment.
+
+Professional Experience
+
+Data Scientist | PayWave (2022 - Present)
+- Built a credit scoring model in scikit-learn improving approval rate by 18% while keeping default rate stable
+- Designed and analysed A/B tests for new pricing tiers; results adopted company-wide
+- Deployed three production models through MLflow with monitoring dashboards in Grafana
+- Reduced training pipeline runtime from 9h to 90m via Dask parallelisation
+
+Junior Data Scientist | RetailNet (2020 - 2022)
+- Built a customer churn model (XGBoost) that informed retention campaigns
+- Wrote SQL pipelines processing 200GB of transaction data weekly
+- Presented findings to product and marketing leadership monthly
+
+Education
+Master's Degree in Data Science
+American University in Cairo (2018 - 2020)
+
+Bachelor's Degree in Mathematics
+Cairo University (2014 - 2018)
+
+Skills
+Python, pandas, scikit-learn, NumPy, XGBoost, SQL, PostgreSQL, MLflow, Docker, AWS SageMaker, Git, statistical inference, A/B testing, Tableau, Arabic.

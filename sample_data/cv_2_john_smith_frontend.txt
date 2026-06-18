@@ -1,0 +1,17 @@
+John Smith
+London, UK
+Email: john.smith@email.com
+Phone: +44 7700 900000
+
+Professional Experience
+Frontend Developer | Global Tech (2022 - Present)
+- Developed responsive web applications using React and TypeScript.
+- Improved application performance by 20%.
+- Collaborated with UX designers to implement Tailwind CSS styles.
+
+Education
+Bachelor's Degree in Computer Science
+Oxford University (2018 - 2022)
+
+Skills
+JavaScript, TypeScript, React, Next.js, Tailwind CSS, HTML, CSS, Git.

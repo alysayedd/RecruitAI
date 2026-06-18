@@ -3,11 +3,9 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite+aiosqlite:///./recruitment_ai.db"
     UPLOAD_DIR: str = "./uploads"
-    OLLAMA_BASE_URL: str = "http://localhost:11434"
-    OLLAMA_MODEL: str = "llama3.2"
-    LLM_PROVIDER: str = "ollama"
-    GOOGLE_API_KEY: str = ""
-    GOOGLE_MODEL: str = "gemini-2.0-flash"
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    GROQ_BASE_URL: str = "https://api.groq.com/openai/v1"
     BIAS_CORRECTION_BONUS: float = 5.0
     SHORTLIST_THRESHOLD: float = 0.3
     SECRET_KEY: str = "change-me-to-a-random-secret-in-production"

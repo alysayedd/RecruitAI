@@ -1,0 +1,32 @@
+David Brown
+New York, USA
+Email: david.brown@email.com
+Phone: +1 212 555 0199
+
+Summary
+Staff Engineer with 12 years of experience in distributed systems, platform engineering, and team leadership.
+
+Experience
+
+Staff Engineer | StreamForge (2019 - Present)
+- Designed real-time video streaming pipeline serving 80M monthly users
+- Led 3-year migration from EC2 to Kubernetes with 99.99% uptime
+- Mentored 25+ engineers across 4 teams
+- Authored RFC process now used company-wide
+
+Senior Software Engineer | DataMesh (2015 - 2019)
+- Built distributed query engine processing 50TB/day
+- Reduced cluster cost by $2.4M annually through query optimisation
+
+Software Engineer | StartCo (2012 - 2015)
+- Built early-stage SaaS product (Ruby on Rails → Python)
+
+Education
+Master's in Computer Science
+Carnegie Mellon University (2010 - 2012)
+
+Bachelor's in Computer Science
+MIT (2006 - 2010)
+
+Skills
+Python, Go, Java, Kubernetes, AWS, GCP, PostgreSQL, Kafka, Spark, Redis, distributed systems, technical leadership, RFC authoring, mentoring.

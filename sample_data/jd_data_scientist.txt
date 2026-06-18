@@ -1,0 +1,31 @@
+Data Scientist - Machine Learning
+
+Company: Helio Analytics
+Location: Dubai, UAE (Onsite)
+Type: Full-time
+
+About the Role
+Join our analytics team to build ML models that drive product decisions across our fintech platform. You will work on credit scoring, fraud detection, and customer segmentation.
+
+Responsibilities
+- Design and train ML models (classification, regression, ranking)
+- Run A/B tests and analyse experiment results
+- Build data pipelines in Python and SQL
+- Deploy models with MLflow and monitor drift
+- Communicate findings to non-technical stakeholders
+
+Required Skills
+- 3+ years of experience in data science or ML engineering
+- Strong Python (pandas, scikit-learn, NumPy)
+- Solid SQL and experience with large datasets
+- Statistical inference and experiment design
+- Experience deploying at least one ML model to production
+
+Nice to Have
+- Deep learning frameworks (PyTorch, TensorFlow)
+- LLM fine-tuning or RAG systems
+- Cloud ML platforms (SageMaker, Vertex AI)
+- Arabic NLP
+
+Education
+Master's or Bachelor's degree in Computer Science, Statistics, Mathematics, or related quantitative field.

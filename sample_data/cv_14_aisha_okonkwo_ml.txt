@@ -1,0 +1,28 @@
+Aisha Okonkwo
+Lagos, Nigeria
+Email: aisha.okonkwo@email.com
+Phone: +234 80 1234 5678
+
+Summary
+ML Engineer with 5 years of experience training and deploying NLP and recommendation models.
+
+Experience
+
+ML Engineer | LinguaAI (2021 - Present)
+- Fine-tuned BERT and Llama models for African-language sentiment analysis
+- Built RAG system over 2M legal documents using FAISS and OpenAI embeddings
+- Reduced inference latency by 60% via ONNX quantisation
+
+Data Scientist | ShopSmart (2019 - 2021)
+- Built recommendation engine increasing AOV by 14%
+- Deployed real-time scoring with TorchServe behind FastAPI
+
+Education
+Master's in Computer Science (ML specialisation)
+University of Cape Town (2017 - 2019)
+
+Bachelor's in Computer Science
+University of Lagos (2013 - 2017)
+
+Skills
+Python, PyTorch, Transformers, scikit-learn, FAISS, LangChain, FastAPI, Docker, AWS SageMaker, MLflow, ONNX, SQL, distributed training (Ray, Horovod).

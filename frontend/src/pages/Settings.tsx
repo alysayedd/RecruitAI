@@ -76,7 +76,7 @@ export default function Settings() {
   return (
     <div className="min-h-full text-white relative overflow-hidden flex flex-col">
       
-      <div className="relative z-10 max-w-4xl mx-auto w-full space-y-8 animate-fade-in pb-12">
+      <div className="relative z-10 w-full space-y-8 animate-fade-in pb-12">
         
         {/* Header */}
         <div>

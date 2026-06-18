@@ -14,4 +14,5 @@ class User(Base):
     is_verified = Column(Boolean, nullable=False, default=False)
     verification_code = Column(String, nullable=True)
     verification_code_expires_at = Column(DateTime, nullable=True)
+    api_key = Column(String, unique=True, nullable=True, index=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

@@ -1,0 +1,25 @@
+Zainab Ahmed
+Karachi, Pakistan
+Email: zainab.ahmed@email.com
+Phone: +92 21 1234 5678
+
+Summary
+ML Engineer with 4 years of experience in computer vision and recommendation systems.
+
+Experience
+
+ML Engineer | VisionCo (2022 - Present)
+- Trained YOLOv8 models for retail shelf detection (mAP 0.91)
+- Deployed inference pipeline on edge devices using TensorRT
+- Built data labelling tooling that 4x'd labelling throughput
+
+Junior Data Scientist | ShopFlow (2020 - 2022)
+- Built collaborative filtering recommender (uplift +9% CTR)
+- Ran A/B tests for ranking changes
+
+Education
+Bachelor's in Computer Science
+LUMS - Lahore University of Management Sciences (2016 - 2020)
+
+Skills
+Python, PyTorch, TensorFlow, OpenCV, YOLO, TensorRT, ONNX, scikit-learn, SQL, FastAPI, AWS, Docker, MLflow, Urdu, English.

@@ -1,11 +1,111 @@
 import asyncio
+from difflib import SequenceMatcher
 from typing import AsyncGenerator
 
 from agents.bias_auditor import run_bias_auditor
-from agents.cv_screener import run_cv_screener
+from agents.cv_screener import redact_cv, run_cv_screener
 from agents.explainer import run_explainer
 from agents.jd_parser import run_jd_parser
 from agents.ranker import run_ranker
+
+
+def _build_cv_clusters(candidates: list, similarity_threshold: float = 0.9) -> dict[str, str]:
+    """Group near-identical CVs and return {candidate_id -> cluster_id}.
+
+    Cluster IDs are the candidate_id of the cluster's first member, used as a
+    stable key. Singletons get a cluster of one (themselves).
+    """
+    redacted_cache: dict[str, str] = {}
+    for c in candidates:
+        cid = c["candidate_id"]
+        redacted_cache[cid] = redact_cv(c.get("cv_text", "") or "", c.get("name", ""))
+
+    cluster_of: dict[str, str] = {}
+    ordered = list(candidates)
+    for i, ci in enumerate(ordered):
+        cid_i = ci["candidate_id"]
+        if cid_i in cluster_of:
+            continue
+        cluster_of[cid_i] = cid_i  # self is the seed
+        text_i = redacted_cache[cid_i]
+        for cj in ordered[i + 1:]:
+            cid_j = cj["candidate_id"]
+            if cid_j in cluster_of:
+                continue
+            ratio = SequenceMatcher(None, text_i, redacted_cache[cid_j]).ratio()
+            if ratio >= similarity_threshold:
+                cluster_of[cid_j] = cid_i
+    return cluster_of
+
+
+def _collapse_to_cluster_max(items: list, cluster_of: dict[str, str], score_field: str,
+                              copy_fields: tuple[str, ...] = ()) -> int:
+    """For each cluster, find the item with the highest `score_field` and copy that
+    value (plus any `copy_fields`) onto every other member. Returns count of items collapsed.
+    Mutates `items` in place. Each item must have a `candidate_id`.
+    """
+    if len(items) < 2 or not cluster_of:
+        return 0
+    by_cluster: dict[str, list[int]] = {}
+    for idx, it in enumerate(items):
+        cid = it.get("candidate_id")
+        cluster = cluster_of.get(cid, cid)
+        by_cluster.setdefault(cluster, []).append(idx)
+
+    collapsed = 0
+    for members in by_cluster.values():
+        if len(members) < 2:
+            continue
+        top_idx = max(members, key=lambda k: items[k].get(score_field, 0))
+        top_val = items[top_idx][score_field]
+        top_copies = {f: items[top_idx].get(f) for f in copy_fields}
+        for k in members:
+            if k == top_idx:
+                continue
+            items[k][score_field] = top_val
+            for f, v in top_copies.items():
+                if v is not None:
+                    items[k][f] = v
+            items[k]["normalized_identical"] = True
+        items[top_idx]["normalized_identical"] = True
+        collapsed += len(members)
+    return collapsed
+
+
+def _normalize_identical_cvs(screened: list, cluster_of: dict[str, str] | None = None,
+                              similarity_threshold: float = 0.9) -> list:
+    """Force candidates with near-identical CV text to receive the same total_score.
+
+    This is the structural fix for LLM scoring nondeterminism — two CVs with the
+    same qualifications must produce the same score regardless of name/origin.
+    When a near-duplicate cluster is found, every member gets the cluster MAX
+    score (so nobody is penalized) and inherits the matched/missing skill lists
+    from that top scorer. Score breakdowns are aligned too so downstream
+    consumers stay consistent.
+    """
+    if len(screened) < 2:
+        return screened
+    if cluster_of is None:
+        cluster_of = _build_cv_clusters(screened, similarity_threshold)
+
+    # Need score_breakdown propagated too — handle manually instead of copy_fields
+    # because dict copy must be deep-ish.
+    by_cluster: dict[str, list[int]] = {}
+    for idx, c in enumerate(screened):
+        cid = c["candidate_id"]
+        by_cluster.setdefault(cluster_of.get(cid, cid), []).append(idx)
+
+    for members in by_cluster.values():
+        if len(members) < 2:
+            continue
+        top_idx = max(members, key=lambda k: screened[k].get("total_score", 0))
+        top_score = screened[top_idx]["total_score"]
+        top_breakdown = screened[top_idx].get("score_breakdown", {})
+        for k in members:
+            screened[k]["total_score"] = top_score
+            screened[k]["score_breakdown"] = {**top_breakdown}
+            screened[k]["normalized_identical"] = True
+    return screened
 
 
 async def run_pipeline(
@@ -26,36 +126,46 @@ async def run_pipeline(
     yield await emit("jd_parser", "Parsing job description...", {})
     try:
         parsed_jd = await run_jd_parser(jd_text)
+        if parsed_jd.get("error") or (not parsed_jd.get("title") and not parsed_jd.get("required_skills")):
+            err = parsed_jd.get("error", "LLM returned empty result")
+            results["parsed_jd"] = {**parsed_jd, "llm_failed": True}
+            yield await emit("jd_parser", f"LLM error while parsing JD: {err}", {"error": err, "llm_failed": True})
+            return
         results["parsed_jd"] = parsed_jd
         yield await emit("jd_parser", f"JD parsed - found {len(parsed_jd.get('required_skills', []))} required skills", {"parsed_jd": parsed_jd})
     except Exception as e:
-        parsed_jd = {
-            "title": "Job",
-            "required_skills": [],
-            "preferred_skills": [],
-            "min_experience_years": 0,
-            "education_level": "Bachelor's",
-            "responsibilities": [],
-            "bias_flags": [],
-        }
-        results["parsed_jd"] = parsed_jd
-        yield await emit("jd_parser", f"JD parsing error: {e} - using defaults", {})
+        results["parsed_jd"] = {"llm_failed": True, "error": str(e)}
+        yield await emit("jd_parser", f"JD parsing failed: {e}", {"error": str(e), "llm_failed": True})
+        return
 
     yield await emit("cv_screener", f"Screening {len(candidates)} anonymized CVs...", {})
 
+    sem = asyncio.Semaphore(2)  # Groq free tier: 30 RPM + 6000 TPM. 2 concurrent keeps us under TPM with ~1.5k tokens/call.
+
     async def screen_one(c):
-        try:
-            score_result = await run_cv_screener(c["cv_text"] or "", parsed_jd, c.get("name", ""))
-            if "error" in score_result:
-                return {**c, "total_score": 0, "score_breakdown": score_result}
-            return {**c, "total_score": score_result["total_score"], "score_breakdown": score_result}
-        except Exception as e:
-            return {**c, "total_score": 0, "score_breakdown": {"error": str(e)}}
+        async with sem:
+            try:
+                score_result = await run_cv_screener(c["cv_text"] or "", parsed_jd, c.get("name", ""))
+                # Small post-call delay to spread TPM usage over time and avoid 429s on Groq free tier.
+                await asyncio.sleep(0.8)
+                if "error" in score_result:
+                    return {**c, "total_score": 0, "score_breakdown": score_result}
+                return {**c, "total_score": score_result["total_score"], "score_breakdown": score_result}
+            except Exception as e:
+                return {**c, "total_score": 0, "score_breakdown": {"error": str(e)}}
 
     screened = await asyncio.gather(*[screen_one(c) for c in candidates])
+    # Build clusters once from the original CV texts. Reuse them after calibration
+    # so identical CVs get the same FINAL adjusted score, not just the same raw score.
+    cv_clusters = _build_cv_clusters(candidates)
+    screened = _normalize_identical_cvs(screened, cluster_of=cv_clusters)
+    normalized = sum(1 for c in screened if c.get("normalized_identical"))
     results["screened"] = screened
     avg_score = sum(c["total_score"] for c in screened) / max(len(screened), 1)
-    yield await emit("cv_screener", f"All CVs screened - average score: {avg_score:.1f}/100", {})
+    msg = f"All CVs screened - average score: {avg_score:.1f}/100"
+    if normalized:
+        msg += f" ({normalized} near-duplicate CVs normalized to identical scores)"
+    yield await emit("cv_screener", msg, {})
 
     yield await emit("bias_auditor", "Running fairness audit and calibration...", {})
     try:
@@ -94,9 +204,28 @@ async def run_pipeline(
     yield await emit("ranker", "Generating calibrated final rankings...", {})
     try:
         rankings = await run_ranker(screened, bias_report)
+        # CRITICAL pairwise guarantee: the bias-correction layer can add per-group
+        # bonuses that diverge identical CVs. Re-collapse clusters on the FINAL
+        # adjusted_score (and copy the cluster top's bias-correction metadata)
+        # so two byte-identical CVs always end with the same number and same
+        # bias_corrected flag. Without this step group-DIR can be 1.0 while the
+        # pairwise rule is silently violated.
+        collapsed = _collapse_to_cluster_max(
+            rankings,
+            cv_clusters,
+            score_field="adjusted_score",
+            copy_fields=("bias_corrected", "fairness_adjustment", "raw_score", "score_breakdown"),
+        )
+        # Resort + reassign ranks after collapse
+        rankings.sort(key=lambda x: x["adjusted_score"], reverse=True)
+        threshold_n = max(1, int(len(rankings) * 0.3)) if rankings else 0
+        for i, r in enumerate(rankings):
+            r["rank"] = i + 1
+            r["shortlisted"] = i < threshold_n
         results["rankings"] = rankings
         shortlisted = sum(1 for r in rankings if r["shortlisted"])
-        yield await emit("ranker", f"Ranked {len(rankings)} candidates - {shortlisted} shortlisted", {"rankings": rankings})
+        extra = f" ({collapsed} identical-CV scores re-collapsed after calibration)" if collapsed else ""
+        yield await emit("ranker", f"Ranked {len(rankings)} candidates - {shortlisted} shortlisted{extra}", {"rankings": rankings})
     except Exception as e:
         rankings = []
         results["rankings"] = rankings

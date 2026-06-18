@@ -1,5 +1,16 @@
 import re
 from agents.common import call_llm
+from pydantic import BaseModel, Field
+
+class CVScreeningResult(BaseModel):
+    reasoning: str = Field(description="3-4 sentences explaining the score using ONLY job-relevant evidence. What the candidate excels at, where gaps exist, and why the score is justified. THINK STEP BY STEP.")
+    skills_score: float = Field(description="0-40")
+    experience_score: float = Field(description="0-30")
+    education_score: float = Field(description="0-20")
+    extras_score: float = Field(description="0-10")
+    matched_skills: list[str] = Field(description="Skills from the job's required/preferred lists that ARE present in the CV. Do not include skills outside those lists.")
+    missing_skills: list[str] = Field(description="Skills from the job's required/preferred lists that are NOT present in the CV. NEVER invent skills (no Flask/Django/Spring/CI-CD/etc) that the job did not list.")
+    total_score: float = Field(description="Sum of all scores, max 100")
 
 SYSTEM = (
     "You are a strictly fair and unbiased recruitment screener. "
@@ -11,7 +22,8 @@ SYSTEM = (
     "and any other protected or demographic-proxy attribute. "
     "Two candidates with identical qualifications MUST receive identical scores regardless of "
     "any non-job-relevant differences. "
-    "Respond with valid JSON only."
+    "\n\nEXAMPLE OF GOOD REASONING:\n"
+    "\"The candidate demonstrates strong potential through a perfect education score and key technical proficiencies in Python and SQL. However, they fall short in professional experience, scoring only 6 out of 30, and lack familiarity with REST APIs and CI/CD.\""
 )
 
 PROXY_PATTERNS = [
@@ -67,10 +79,14 @@ Job Requirements:
 - Education: {edu_level}
 
 Scoring weights — apply consistently to every candidate:
-- skills_score: 0-40. Award points ONLY for skills explicitly demonstrated in the CV text. 8 pts per required skill matched (with evidence), 4 pts per preferred skill matched. 0 for missing required skills.
-- experience_score: 0-30. Years of relevant experience (up to 15), demonstrated impact/leadership (up to 10), tech stack alignment (up to 5). Count only documented experience.
+- skills_score: 0-40. Award points ONLY for skills explicitly demonstrated in the CV text WITH EVIDENCE OF DEPTH. A skill listed once with no project/role/years backing it is NOT a match. Required skill matched with strong evidence (multi-year use, shipped projects, leadership) = 8 pts. Required skill matched but only briefly mentioned (bootcamp / single short project / "familiar with") = 3-4 pts. Preferred skill matched with evidence = 3-4 pts; brief mention = 1-2 pts. 0 for missing required skills. A candidate who lists 5 required skill names but has only 6 months total experience cannot earn 40/40.
+- experience_score: 0-30. Years of relevant experience (up to 15), demonstrated impact/leadership (up to 10), tech stack alignment (up to 5). Count only documented experience. A career-changer with <1 year coding experience caps at 5-8 here regardless of other factors.
 - education_score: 0-20. Degree level match (up to 12), field relevance (up to 8). Score the degree level and field ONLY — never award or deduct points based on which university, its ranking, prestige, or country.
 - extras_score: 0-10. Relevant certifications (up to 4), relevant projects (up to 4), measurable awards/achievements (up to 2).
+
+Skill list rules — these are HARD constraints:
+- matched_skills MUST be a subset of the union of Required + Preferred skills above. Do not list skills outside those lists.
+- missing_skills MUST be a subset of Required + Preferred skills NOT present in the CV. Never invent additional skills (Flask, Django, Spring Boot, CI/CD, REST API frameworks, etc.) that this job did not request.
 
 STRICT FAIRNESS RULES — violation of any rule invalidates the scoring:
 1. NEVER infer, use, or reference any protected attribute (name, gender, age, race, ethnicity, nationality, religion, disability, marital status).
@@ -81,20 +97,8 @@ STRICT FAIRNESS RULES — violation of any rule invalidates the scoring:
 
 CV Text (PII redacted):
 {redacted}
-
-Respond ONLY with this JSON:
-{{
-  "total_score": <sum of all scores, max 100>,
-  "skills_score": <0-40>,
-  "experience_score": <0-30>,
-  "education_score": <0-20>,
-  "extras_score": <0-10>,
-  "matched_skills": ["skill1", "skill2"],
-  "missing_skills": ["skill1"],
-  "reasoning": "3-4 sentences explaining the score using ONLY job-relevant evidence. What the candidate excels at, where gaps exist, and why the score is justified."
-}}
 """
-    result = await call_llm(prompt, SYSTEM)
+    result = await call_llm(prompt, SYSTEM, response_schema=CVScreeningResult)
 
     # Propagate LLM errors so callers can handle them
     if "error" in result:
@@ -108,6 +112,16 @@ Respond ONLY with this JSON:
     result.setdefault("matched_skills", [])
     result.setdefault("missing_skills", [])
     result.setdefault("reasoning", "Score generated automatically.")
+
+    # Safety net: hard-filter the skill lists so anything outside the JD is dropped.
+    # Prevents the explainer from hallucinating "missing Flask/Django/Spring Boot"
+    # when the JD never listed them.
+    jd_skills_lower = {s.strip().lower() for s in (required_skills + preferred_skills) if s and s.strip()}
+    if jd_skills_lower:
+        result["matched_skills"] = [s for s in result["matched_skills"]
+                                    if isinstance(s, str) and s.strip().lower() in jd_skills_lower]
+        result["missing_skills"] = [s for s in result["missing_skills"]
+                                    if isinstance(s, str) and s.strip().lower() in jd_skills_lower]
 
     # Recalculate total for safety
     total = (

@@ -1,0 +1,32 @@
+Mariam Tarek
+Cairo, Egypt
+Email: mariam.tarek@email.com
+Phone: +20 100 666 7788
+
+Summary
+Pharmacist transitioning into software engineering. Completed an intensive coding bootcamp and shipped two production projects. Strong analytical skills from 5 years in clinical practice.
+
+Experience
+
+Junior Full-Stack Developer | HealthTech Startup (Jan 2025 - Present)
+- Built patient-facing React app for medication reminders (4 months)
+- Wrote FastAPI backend handling appointment scheduling
+- Integrated with hospital management systems via HL7/FHIR
+
+Coding Bootcamp Graduate | Wuzzuf Re:Coded (Sep 2024 - Dec 2024)
+- 16-week intensive in MERN + Python
+- Capstone: pharmacy inventory app with React + Node.js + MongoDB
+
+Clinical Pharmacist | Cairo Hospital (2019 - 2024)
+- Managed medication therapy for 30+ inpatients daily
+- Built internal Excel/VBA tools for stock tracking (saved ~8h/week)
+
+Education
+Bachelor of Pharmacy
+Cairo University (2014 - 2019)
+
+Coding Bootcamp Certificate
+Re:Coded (2024)
+
+Skills
+React, Node.js, Express, FastAPI, Python, MongoDB, PostgreSQL, Git, Excel/VBA, healthcare domain knowledge, Arabic, English.

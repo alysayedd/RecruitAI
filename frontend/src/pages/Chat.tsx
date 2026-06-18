@@ -57,7 +57,7 @@ export default function Chat() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-6rem)] max-w-4xl mx-auto text-white animate-fade-in">
+    <div className="flex flex-col h-[calc(100vh-6rem)] w-full text-white animate-fade-in">
       
       {/* Header */}
       <div className="mb-6 shrink-0">

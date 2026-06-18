@@ -1,0 +1,26 @@
+Yusuf Ibrahim
+Riyadh, Saudi Arabia
+Email: yusuf.ibrahim@email.com
+Phone: +966 50 111 2233
+
+Summary
+Backend Engineer with 5 years of experience building distributed systems and APIs at scale.
+
+Experience
+
+Senior Backend Engineer | CloudNet (2022 - Present)
+- Designed gRPC services in Go handling 50k RPS
+- Reduced infrastructure costs by 35% by re-architecting cache layer with Redis
+- Led migration from MySQL to PostgreSQL for 12TB transactional database
+
+Backend Engineer | SaaSCo (2020 - 2022)
+- Built FastAPI services for billing and entitlements
+- Implemented idempotent payment webhooks integrated with Stripe
+- Wrote PostgreSQL stored procedures for compliance reports
+
+Education
+Bachelor's in Computer Science
+King Saud University (2015 - 2019)
+
+Skills
+Go, Python, FastAPI, gRPC, PostgreSQL, Redis, Kafka, Docker, Kubernetes, AWS, Linux, Git, Stripe API.

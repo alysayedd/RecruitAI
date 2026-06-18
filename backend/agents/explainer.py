@@ -1,3 +1,4 @@
+import asyncio
 from agents.common import call_llm_text
 
 SYSTEM = (
@@ -9,25 +10,40 @@ SYSTEM = (
 
 async def run_explainer(rankings: list, bias_report: dict, parsed_jd: dict) -> dict:
     """Generate plain-English explanations for each candidate and a batch summary."""
-    explanations = {}
+    sem = asyncio.Semaphore(2)  # Groq free tier rate-limit safe
 
-    for r in rankings[:10]:  # Explain top 10 to save LLM calls
-        cid = r["candidate_id"]
+    async def explain_one(r):
         sb = r.get("score_breakdown", {})
-        prompt = f"""A candidate was ranked #{r['rank']} with a score of {r['adjusted_score']}/100.
+        # Note: we intentionally do NOT pass the shortlist decision or rank into the
+        # prompt — otherwise the LLM produces circular justifications like
+        # "should be considered further because shortlisted = true". The model must
+        # reason from the score breakdown alone.
+        prompt = f"""Evaluate this candidate from their score breakdown.
 
-Score breakdown:
-- Skills match: {sb.get('skills_score', 0)}/40 — matched: {sb.get('matched_skills', [])}, missing: {sb.get('missing_skills', [])}
+Score breakdown (sub-scores out of category max):
+- Skills: {sb.get('skills_score', 0)}/40 — matched: {sb.get('matched_skills', [])}, missing: {sb.get('missing_skills', [])}
 - Experience: {sb.get('experience_score', 0)}/30
 - Education: {sb.get('education_score', 0)}/20
 - Extras: {sb.get('extras_score', 0)}/10
-- Shortlisted: {r['shortlisted']}
-- Bias correction applied: {r['bias_corrected']}
+- Total adjusted score: {r['adjusted_score']}/100
 
-Write exactly 3 sentences: (1) what makes this candidate strong for the role, (2) where they fall short, (3) whether they should be considered further. Be specific. Do not mention names or demographics."""
+Write exactly 3 sentences, each grounded in the numbers above:
+(1) The candidate's strongest evidence for this role, citing a specific matched skill from the matched list or a sub-score.
+(2) The most material gap, citing ONLY a skill from the missing list above or a low sub-score. Do NOT invent skills that are not in that missing list (no Flask, Django, Spring Boot, CI/CD, REST API frameworks, etc. unless they explicitly appear above).
+(3) A go/no-go recommendation justified by the sub-scores — do NOT reference a shortlist status or rank, and do NOT use the words "shortlisted" or "ranked".
 
-        text = await call_llm_text(prompt, SYSTEM)
-        explanations[cid] = text.strip()
+Do not mention names, demographics, universities, or geography."""
+        async with sem:
+            text = await call_llm_text(prompt, SYSTEM)
+            await asyncio.sleep(0.8)
+        return r["candidate_id"], text.strip()
+
+    top = rankings[:10]  # Explain top 10 to save LLM calls
+    results = await asyncio.gather(*[explain_one(r) for r in top], return_exceptions=True)
+    explanations = {
+        cid: text for item in results if not isinstance(item, Exception)
+        for cid, text in [item]
+    }
 
     # Batch summary
     total = len(rankings)

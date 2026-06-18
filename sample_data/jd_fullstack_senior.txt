@@ -1,0 +1,31 @@
+Senior Full-Stack Engineer
+
+Company: Nexora Tech
+Location: Cairo, Egypt (Hybrid)
+Type: Full-time
+
+About the Role
+We are looking for a Senior Full-Stack Engineer to design and ship customer-facing features end to end. You will own backend services and frontend experiences, drive technical decisions, and mentor mid-level engineers.
+
+Responsibilities
+- Build and maintain REST and GraphQL APIs in Python (FastAPI) and Node.js
+- Build performant React + TypeScript frontends with modern state management
+- Design relational schemas in PostgreSQL and optimise queries
+- Deploy and monitor services on AWS using Docker and CI/CD pipelines
+- Lead code reviews, set engineering standards, and mentor junior developers
+
+Required Skills
+- 5+ years of professional software engineering experience
+- Strong proficiency in Python and JavaScript/TypeScript
+- Production experience with React, FastAPI or Node.js, and PostgreSQL
+- Cloud deployment experience (AWS, GCP, or Azure) with Docker
+- Solid understanding of API design, authentication, and security
+- Experience with Git-based workflows and CI/CD
+
+Nice to Have
+- Redis, Kafka, or other messaging systems
+- Experience with LLM-based features (OpenAI, Groq, Anthropic)
+- Open source contributions
+
+Education
+Bachelor's degree in Computer Science, Software Engineering, or related field.

@@ -1,0 +1,17 @@
+Ahmed Hassan
+Cairo, Egypt
+Email: ahmed@email.com
+Phone: +20 123 456 7890
+
+Professional Experience
+Frontend Developer | Tech Solutions (2022 - Present)
+- Developed responsive web applications using React and TypeScript.
+- Improved application performance by 20%.
+- Collaborated with UX designers to implement Tailwind CSS styles.
+
+Education
+Bachelor's Degree in Computer Science
+Cairo University (2018 - 2022)
+
+Skills
+JavaScript, TypeScript, React, Next.js, Tailwind CSS, HTML, CSS, Git.
