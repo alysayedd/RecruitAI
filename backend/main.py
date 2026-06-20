@@ -10,6 +10,7 @@ from api.routes_auth import router as auth_router
 from api.routes_student import router as student_router
 from api.routes_dashboard import router as dashboard_router
 from api.routes_chat import router as chat_router
+from config import settings
 import os
 
 
@@ -17,7 +18,7 @@ import os
 async def lifespan(app: FastAPI):
     # Create DB tables on startup
     await init_db()
-    os.makedirs("./uploads", exist_ok=True)
+    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
     yield
 
 
@@ -28,9 +29,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+_origins = [o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()] or ["*"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
