@@ -36,8 +36,8 @@ export default function PrivacyPolicy({ onBack }: Props) {
         <section className="space-y-4">
           <h2 className="text-xl font-semibold">3. AI Processing</h2>
           <p className="text-gray-400 leading-relaxed">
-            AI processing is powered by Groq cloud inference running Llama 3.3 70B. Your CVs and job
-            descriptions are sent securely to Groq's API for analysis. Groq's data usage policy states
+            AI processing is powered by Cerebras cloud inference running gpt-oss-120b. Your CVs and job
+            descriptions are sent securely to Cerebras's API for analysis. Cerebras's data usage policy states
             that prompts and completions are not used for training. All results are stored locally in
             your own database.
           </p>

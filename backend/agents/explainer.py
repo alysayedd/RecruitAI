@@ -10,7 +10,7 @@ SYSTEM = (
 
 async def run_explainer(rankings: list, bias_report: dict, parsed_jd: dict) -> dict:
     """Generate plain-English explanations for each candidate and a batch summary."""
-    sem = asyncio.Semaphore(2)  # Groq free tier rate-limit safe
+    sem = asyncio.Semaphore(2)  # Cerebras rate-limit safe
 
     async def explain_one(r):
         sb = r.get("score_breakdown", {})

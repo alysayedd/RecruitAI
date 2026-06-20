@@ -140,13 +140,13 @@ async def run_pipeline(
 
     yield await emit("cv_screener", f"Screening {len(candidates)} anonymized CVs...", {})
 
-    sem = asyncio.Semaphore(2)  # Groq free tier: 30 RPM + 6000 TPM. 2 concurrent keeps us under TPM with ~1.5k tokens/call.
+    sem = asyncio.Semaphore(2)  # Cerebras rate-limit safe
 
     async def screen_one(c):
         async with sem:
             try:
                 score_result = await run_cv_screener(c["cv_text"] or "", parsed_jd, c.get("name", ""))
-                # Small post-call delay to spread TPM usage over time and avoid 429s on Groq free tier.
+                # Small post-call delay to spread TPM usage over time and avoid 429s.
                 await asyncio.sleep(0.8)
                 if "error" in score_result:
                     return {**c, "total_score": 0, "score_breakdown": score_result}

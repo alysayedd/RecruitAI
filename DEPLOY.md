@@ -12,7 +12,9 @@ This repo deploys as **two Railway services** in one project: `backend` and `fro
 - **Settings → Source → Root Directory**: `backend`
 - **Settings → Networking**: Generate a public domain (e.g. `recruitai-backend.up.railway.app`)
 - **Variables**:
-  - `GROQ_API_KEY` = your key
+  - `CEREBRAS_API_KEY` = your Cerebras API key
+  - `CEREBRAS_MODEL` = `gpt-oss-120b`
+  - `CEREBRAS_BASE_URL` = `https://api.cerebras.ai/v1`
   - `SECRET_KEY` = a long random string
   - `CORS_ORIGINS` = `https://<your-frontend-domain>` (set after step 3, comma-separated for multiple)
   - `DATABASE_URL` = `sqlite+aiosqlite:////data/recruitment_ai.db` (only if you attach a volume; otherwise leave default)

@@ -1,6 +1,6 @@
 # RecruitAI — AI-Powered Recruitment Screening & Bias Analyzer
 
-A multi-agent recruitment system that screens CVs with AI and audits its own decisions for bias. Powered by **Groq (Llama 3.3 70B)**.
+A multi-agent recruitment system that screens CVs with AI and audits its own decisions for bias. Powered by **Cerebras (gpt-oss-120b)**.
 
 ## Architecture
 
@@ -18,7 +18,7 @@ JD Parser → CV Screener → Bias Auditor → Ranker → Explainer
 
 ## Tech Stack
 
-- **LLM**: Groq cloud inference running Llama 3.3 70B (fast, free tier, reliable JSON via OpenAI-compatible API)
+- **LLM**: Cerebras cloud inference running gpt-oss-120b (fast, reliable JSON via OpenAI-compatible API)
 - **Backend**: Python + FastAPI + async SQLAlchemy
 - **Database**: SQLite (zero setup)
 - **Frontend**: React 18 + TypeScript + Tailwind CSS + Vite
@@ -32,22 +32,21 @@ The pipeline requires strict JSON output and deterministic scoring for the bias 
 - **Reliable JSON** via OpenAI-compatible JSON mode (~99%+ valid)
 - **Consistent scoring** (±2-5 point variance) — required for fair bias measurement
 - **Strong instruction following** for multi-rule rubrics
-- **Fast throughput** — Groq serves Llama 3.3 70B at ~300 tok/s, full 20-CV pipeline in ~30s
-- **Free tier** that's enough for development (30 req/min, no card required)
+- **Fast throughput** — Cerebras serves gpt-oss-120b at very high tokens/sec, full 20-CV pipeline in ~30s
 
 The provider is swappable via `.env` — see "Swapping models" below.
 
 ## Setup
 
-### 1. Get a Groq API Key
-Go to [console.groq.com/keys](https://console.groq.com/keys) and create a free API key.
+### 1. Get a Cerebras API Key
+Go to [cloud.cerebras.ai](https://cloud.cerebras.ai) and create an API key.
 
 ### 2. Configure the Backend
 Create a `.env` file in the `backend/` directory:
 ```env
-GROQ_API_KEY=gsk_your-key-here
-GROQ_MODEL=llama-3.3-70b-versatile
-GROQ_BASE_URL=https://api.groq.com/openai/v1
+CEREBRAS_API_KEY=csk-your-key-here
+CEREBRAS_MODEL=gpt-oss-120b
+CEREBRAS_BASE_URL=https://api.cerebras.ai/v1
 ```
 
 ### Swapping models
@@ -55,12 +54,10 @@ The LLM layer uses an OpenAI-compatible client, so you can swap providers by cha
 
 | Provider | `BASE_URL` | Example `MODEL` |
 |---|---|---|
-| Groq (default) | `https://api.groq.com/openai/v1` | `llama-3.3-70b-versatile`, `deepseek-r1-distill-llama-70b` |
-| DeepSeek | `https://api.deepseek.com/v1` | `deepseek-chat` |
+| Cerebras (default) | `https://api.cerebras.ai/v1` | `gpt-oss-120b`, `llama-3.3-70b` |
+| Groq | `https://api.groq.com/openai/v1` | `llama-3.3-70b-versatile` |
 | OpenAI | `https://api.openai.com/v1` | `gpt-4o-mini` |
 | Local (Ollama) | `http://localhost:11434/v1` | `llama3.1:70b` |
-
-(Rename the env var prefix in `config.py` to match your provider, or leave it as `GROQ_*` — only the values matter.)
 
 ### 3. Run bootstrap
 ```bash
@@ -121,9 +118,9 @@ This is the core academic experiment for the thesis.
 recruitment-ai/
 ├── backend/
 │   ├── main.py
-│   ├── .env                 # Groq API key config
+│   ├── .env                 # Cerebras API key config
 │   ├── agents/
-│   │   ├── common.py        # LLM caller (OpenAI-compatible → Groq by default)
+│   │   ├── common.py        # LLM caller (OpenAI-compatible → Cerebras by default)
 │   │   ├── orchestrator.py  # Pipeline coordinator
 │   │   ├── jd_parser.py
 │   │   ├── cv_screener.py

@@ -14,8 +14,8 @@ def _get_client() -> AsyncOpenAI:
     global _client
     if _client is None:
         _client = AsyncOpenAI(
-            api_key=settings.GROQ_API_KEY,
-            base_url=settings.GROQ_BASE_URL,
+            api_key=settings.CEREBRAS_API_KEY,
+            base_url=settings.CEREBRAS_BASE_URL,
         )
     return _client
 
@@ -54,8 +54,8 @@ def _schema_to_instruction(response_schema) -> str:
         return "\n\nRespond with ONLY a single valid JSON object (no prose, no markdown fences)."
 
 
-async def _groq_request(prompt: str, system: str = "", temperature: float = 0.1, response_schema=None) -> str:
-    """Groq (OpenAI-compatible) provider with automatic rate-limit retry.
+async def _cerebras_request(prompt: str, system: str = "", temperature: float = 0.1, response_schema=None) -> str:
+    """Cerebras (OpenAI-compatible) provider with automatic rate-limit retry.
     Uses JSON mode when a response_schema is provided for reliable structured output."""
     client = _get_client()
     sys_text = system or ""
@@ -68,7 +68,7 @@ async def _groq_request(prompt: str, system: str = "", temperature: float = 0.1,
     messages.append({"role": "user", "content": prompt})
 
     kwargs = {
-        "model": settings.GROQ_MODEL,
+        "model": settings.CEREBRAS_MODEL,
         "messages": messages,
         "temperature": temperature,
         "max_tokens": 4096,
@@ -94,7 +94,7 @@ async def _groq_request(prompt: str, system: str = "", temperature: float = 0.1,
                     except ValueError:
                         pass
                 logger.warning(
-                    f"Rate limited by Groq API ({e.status_code}). "
+                    f"Rate limited by Cerebras API ({e.status_code}). "
                     f"Waiting {delay:.0f}s before retry {attempt + 2}/{max_rate_limit_retries}..."
                 )
                 await asyncio.sleep(delay)
@@ -103,13 +103,13 @@ async def _groq_request(prompt: str, system: str = "", temperature: float = 0.1,
 
 
 async def call_llm(prompt: str, system: str = "", max_retries: int = 3, response_schema=None) -> dict:
-    """Call Groq and parse JSON response.
+    """Call Cerebras and parse JSON response.
     Uses JSON mode when response_schema is provided. Automatically handles rate limits.
     Temperature pinned to 0.0 for scoring determinism (still not fully deterministic on LLMs,
     but cuts variance ~50% — paired with the identical-CV normalization in the orchestrator)."""
     for attempt in range(max_retries):
         try:
-            text = await _groq_request(prompt, system, 0.0, response_schema=response_schema)
+            text = await _cerebras_request(prompt, system, 0.0, response_schema=response_schema)
             result = _extract_json(text)
             if result:
                 return result
@@ -124,11 +124,11 @@ async def call_llm(prompt: str, system: str = "", max_retries: int = 3, response
 
 
 async def call_llm_text(prompt: str, system: str = "", max_retries: int = 3) -> str:
-    """Call Groq and return raw text response.
+    """Call Cerebras and return raw text response.
     Automatically handles rate limits with smart retry."""
     for attempt in range(max_retries):
         try:
-            return await _groq_request(prompt, system, 0.2)
+            return await _cerebras_request(prompt, system, 0.2)
         except Exception as e:
             if attempt < max_retries - 1:
                 await asyncio.sleep(2 ** attempt)
